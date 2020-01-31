@@ -112,7 +112,6 @@ The length of `names` and `types` must match.
     NamedTuple{names,types}(Tuple(x[i] for x in get_traces(t)))
 
 @interface Base.isempty(t::AbstractTrajectory) = all(isempty(t) for t in get_traces(t))
-@interface isfull(t::AbstractTrajectory) = all(isfull(x) for x in get_traces(t))
 
 @interface function Base.empty!(t::AbstractTrajectory)
     for x in get_traces(t)
@@ -129,12 +128,10 @@ end
 @interface Base.push!(t::AbstractTrajectory, kv::Pair{Symbol})
 
 @interface function Base.pop!(t::AbstractTrajectory{names}) where names
-    for x in names
-        pop!(t, x)
-    end
+    pop!(t, names...)
 end
 
-@interface Base.pop!(t::AbstractTrajectory, s::Symbol)
+@interface Base.pop!(t::AbstractTrajectory, s::Symbol...)
 
 """
     extract_transitions(trajectory::AbstractTrajectory, learner::AbstractLearner)
@@ -221,9 +218,9 @@ abstract type AbstractActionSet end
 """
     ActionStyle(x)
 
-Specify whether the observation contains a full action set or a minimal action set.
+Specify whether the observation contains a full action set or a minimal action set. The default is `MINIMAL_ACTION_SET`.
 """
-@interface ActionStyle(::NamedTuple{(:reward, :terminal, :state)}) = MINIMAL_ACTION_SET
+@interface ActionStyle(x) = MINIMAL_ACTION_SET
 @interface ActionStyle(::NamedTuple{(:reward, :terminal, :state, :legal_actions)}) =
     FULL_ACTION_SET
 @interface ActionStyle(
