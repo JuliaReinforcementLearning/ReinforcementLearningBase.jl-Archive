@@ -229,8 +229,8 @@ Specify whether the observation contains a full action set or a minimal action s
 ) = FULL_ACTION_SET
 
 
-@interface legal_actions(x) = findall(legal_actions_mask(x))
-@interface legal_actions_mask(x) = x.legal_actions_mask
+@interface get_legal_actions(x) = findall(get_legal_actions_mask(x))
+@interface get_legal_actions_mask(x) = x.legal_actions_mask
 
 @interface get_terminal(x) = x.terminal
 @interface get_reward(x) = x.reward
