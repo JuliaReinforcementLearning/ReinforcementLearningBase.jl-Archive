@@ -135,11 +135,11 @@ end
 @interface Base.pop!(t::AbstractTrajectory, s::Symbol...)
 
 """
-    extract_transitions(trajectory::AbstractTrajectory, learner::AbstractLearner)
+    extract_experience(trajectory::AbstractTrajectory, learner::AbstractLearner)
 
 Extract transitions given a `learner`. Then the result is used to update the `learner`.
 """
-@interface extract_transitions(trajectory::AbstractTrajectory, learner::AbstractLearner)
+@interface extract_experience(trajectory::AbstractTrajectory, learner::AbstractLearner)
 
 #####
 # EnvironmentModel
