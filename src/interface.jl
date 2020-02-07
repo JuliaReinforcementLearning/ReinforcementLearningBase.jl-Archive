@@ -20,6 +20,9 @@ using Random
 @interface const PRE_ACT_STAGE = PreActStage()
 @interface const POST_ACT_STAGE = PostActStage()
 
+struct DefaultPlayer end
+@interface const DEFAULT_PLAYER = DefaultPlayer()
+
 #####
 # Agent
 #####
@@ -27,10 +30,17 @@ using Random
 "An agent is a functional object which takes in an observation and returns an action."
 @interface abstract type AbstractAgent end
 @interface (agent::AbstractAgent)(stage::AbstractStage, obs)
+@interface get_role(::AbstractAgent) = DEFAULT_PLAYER
 
 #####
 # Approximator
 #####
+
+abstract type AbstractApproximatorStyle end
+
+@interface struct VApproximator <: AbstractApproximatorStyle end
+@interface struct QApproximator <: AbstractApproximatorStyle end
+@interface struct HybridApproximator <: AbstractApproximatorStyle end
 
 """
 An approximator is a functional object for value estimation.
@@ -38,6 +48,8 @@ An approximator is a functional object for value estimation.
 @interface abstract type AbstractApproximator end
 @interface (app::AbstractApproximator)(x)
 @interface update!(a::AbstractApproximator, correction)
+
+@interface ApproximatorStyle(x::AbstractApproximator)
 
 #####
 # Learner
@@ -77,7 +89,7 @@ A policy is a functional object which defines how to generate action(s)
 given an observation of the environment.
 """
 @interface abstract type AbstractPolicy end
-@interface (p::AbstractPolicy)(x)
+@interface (p::AbstractPolicy)(obs) = p(obs, ActionStyle(obs))
 @interface update!(p::AbstractPolicy, experience)
 
 #####
@@ -102,20 +114,21 @@ The length of `names` and `types` must match.
 @interface const SARTSA = (:state, :action, :reward, :terminal, :next_state, :next_action)
 
 @interface get_trace(t::AbstractTrajectory, s::Symbol)
-@interface get_traces(t::AbstractTrajectory{names}) where {names} =
+@interface get_trace(t::AbstractTrajectory, s::Symbol...) = merge(NamedTuple(), (x, get_trace(t, x)) for x in s)
+@interface get_trace(t::AbstractTrajectory{names}) where {names} =
     merge(NamedTuple(), (s, get_trace(t, s)) for s in names)
 
-@interface Base.length(t::AbstractTrajectory) = maximum(length(x) for x in get_traces(t))
+@interface Base.length(t::AbstractTrajectory) = maximum(length(x) for x in get_trace(t))
 @interface Base.size(t::AbstractTrajectory) = (length(t),)
 @interface Base.lastindex(t::AbstractTrajectory) = length(t)
 @interface Base.getindex(t::AbstractTrajectory{names,types}, i::Int) where {names,types} =
-    NamedTuple{names,types}(Tuple(x[i] for x in get_traces(t)))
+    NamedTuple{names,types}(Tuple(x[i] for x in get_trace(t)))
 
-@interface Base.isempty(t::AbstractTrajectory) = all(isempty(t) for t in get_traces(t))
-@interface isfull(t::AbstractTrajectory) = all(isfull(x) for x in get_traces(t))
+@interface Base.isempty(t::AbstractTrajectory) = all(isempty(t) for t in get_trace(t))
+@interface isfull(t::AbstractTrajectory) = all(isfull(x) for x in get_trace(t))
 
 @interface function Base.empty!(t::AbstractTrajectory)
-    for x in get_traces(t)
+    for x in get_trace(t)
         empty!(x)
     end
 end
@@ -187,17 +200,15 @@ abstract type AbstractDynamicStyle end
 @interface const SIMULTANEOUS = Simultaneous()
 @interface DynamicStyle(x::AbstractEnv) = SEQUENTIAL
 
-struct DefaultPlayer end
-@interface const DEFAULT_PLAYER = DefaultPlayer()
-
 @interface (env::AbstractEnv)(action) = env(DEFAULT_PLAYER, action)
 @interface (env::AbstractEnv)(player, action)
 
-@interface get_current_player(env::AbstractEnv) = DEFAULT_PLAYER
 @interface observe(env::AbstractEnv) = observe(env, get_current_player(env))
 @interface observe(::AbstractEnv, player)
 @interface get_action_space(env::AbstractEnv) = env.action_space
 @interface get_observation_space(env::AbstractEnv) = env.observation_space
+@interface get_current_player(env::AbstractEnv) = DEFAULT_PLAYER
+@interface get_num_players(env::AbstractEnv) = 1
 @interface render(::AbstractEnv)
 
 @interface reset!(::AbstractEnv)
@@ -223,6 +234,8 @@ Specify whether the observation contains a full action set or a minimal action s
 """
 @interface ActionStyle(x) = MINIMAL_ACTION_SET
 @interface ActionStyle(::NamedTuple{(:reward, :terminal, :state, :legal_actions)}) =
+    FULL_ACTION_SET
+@interface ActionStyle(::NamedTuple{(:reward, :terminal, :state, :legal_actions_mask)}) =
     FULL_ACTION_SET
 @interface ActionStyle(
     ::NamedTuple{(:reward, :terminal, :state, :legal_actions, :legal_actions_mask)},
