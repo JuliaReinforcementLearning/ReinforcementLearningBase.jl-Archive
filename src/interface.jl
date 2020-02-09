@@ -23,6 +23,28 @@ using Random
 struct DefaultPlayer end
 @interface const DEFAULT_PLAYER = DefaultPlayer()
 
+abstract type AbstractActionStyle end
+@interface struct FullActionSet <: AbstractActionStyle end
+@interface const FULL_ACTION_SET = FullActionSet()
+@interface struct MinimalActionSet <: AbstractActionStyle end
+@interface const MINIMAL_ACTION_SET = MinimalActionSet()
+
+"""
+    ActionStyle(x)
+
+Specify whether the observation contains a full action set or a minimal action set.
+"""
+@interface ActionStyle(x) = MINIMAL_ACTION_SET
+
+ActionStyle(::NamedTuple{(:reward, :terminal, :state, :legal_actions)}) =
+    FULL_ACTION_SET
+ActionStyle(::NamedTuple{(:reward, :terminal, :state, :legal_actions_mask)}) =
+    FULL_ACTION_SET
+ActionStyle(
+    ::NamedTuple{(:reward, :terminal, :state, :legal_actions, :legal_actions_mask)},
+) = FULL_ACTION_SET
+
+
 #####
 # Agent
 #####
@@ -77,8 +99,8 @@ Define how to select actions.
 @interface Base.copy(p::AbstractExplorer)
 
 "Get the action distribution given action values"
-@interface get_distribution(p::AbstractExplorer, x)
-@interface get_distribution(p::AbstractExplorer, x, mask)
+@interface get_prob(p::AbstractExplorer, x)
+@interface get_prob(p::AbstractExplorer, x, mask)
 
 #####
 # Policy
@@ -91,6 +113,11 @@ given an observation of the environment.
 @interface abstract type AbstractPolicy end
 @interface (p::AbstractPolicy)(obs) = p(obs, ActionStyle(obs))
 @interface update!(p::AbstractPolicy, experience)
+
+@interface get_prob(p::AbstractPolicy, obs) = get_prob(p, obs, ActionStyle(obs))
+@interface get_prob(p::AbstractPolicy, obs, ::AbstractActionStyle)
+@interface get_prob(p::AbstractPolicy, obs, a) = get_prob(p, obs, ActionStyle(obs), a)
+@interface get_prob(p::AbstractPolicy, obs, ::AbstractActionStyle, a) = get_prob(p, obs)[a]
 
 #####
 # Trajectory
@@ -221,29 +248,13 @@ abstract type AbstractDynamicStyle end
 # By default, we assume an observation is a NamedTuple, which is the most common case.
 #####
 
-abstract type AbstractActionSet end
-@interface struct FullActionSet <: AbstractActionSet end
-@interface const FULL_ACTION_SET = FullActionSet()
-@interface struct MinimalActionSet <: AbstractActionSet end
-@interface const MINIMAL_ACTION_SET = MinimalActionSet()
 
-"""
-    ActionStyle(x)
-
-Specify whether the observation contains a full action set or a minimal action set.
-"""
-@interface ActionStyle(x) = MINIMAL_ACTION_SET
-@interface ActionStyle(::NamedTuple{(:reward, :terminal, :state, :legal_actions)}) =
-    FULL_ACTION_SET
-@interface ActionStyle(::NamedTuple{(:reward, :terminal, :state, :legal_actions_mask)}) =
-    FULL_ACTION_SET
-@interface ActionStyle(
-    ::NamedTuple{(:reward, :terminal, :state, :legal_actions, :legal_actions_mask)},
-) = FULL_ACTION_SET
-
-
-@interface get_legal_actions(x) = findall(get_legal_actions_mask(x))
 @interface get_legal_actions_mask(x) = x.legal_actions_mask
+@interface get_legal_actions(x) = findall(get_legal_actions_mask(x))
+
+get_legal_actions(x::NamedTuple{(:reward, :terminal, :state, :legal_actions, :legal_actions_mask)}) = x.legal_actions
+get_legal_actions(x::NamedTuple{(:reward, :terminal, :state, :legal_actions)}) = x.legal_actions
+
 
 @interface get_terminal(x) = x.terminal
 @interface get_reward(x) = x.reward
