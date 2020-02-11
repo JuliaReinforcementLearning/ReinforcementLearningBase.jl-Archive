@@ -1,4 +1,5 @@
 using Random
+using Distributions: pdf
 
 #####
 # general
@@ -117,7 +118,7 @@ given an observation of the environment.
 @interface get_prob(p::AbstractPolicy, obs) = get_prob(p, obs, ActionStyle(obs))
 @interface get_prob(p::AbstractPolicy, obs, ::AbstractActionStyle)
 @interface get_prob(p::AbstractPolicy, obs, a) = get_prob(p, obs, ActionStyle(obs), a)
-@interface get_prob(p::AbstractPolicy, obs, ::AbstractActionStyle, a) = get_prob(p, obs)[a]
+@interface get_prob(p::AbstractPolicy, obs, ::AbstractActionStyle, a) = pdf(get_prob(p, obs), a)
 
 #####
 # Trajectory
