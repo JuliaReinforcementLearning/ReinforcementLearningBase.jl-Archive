@@ -85,6 +85,7 @@ It defines the expected inputs and how to udpate inner approximators.
 @interface abstract type AbstractLearner end
 @interface (learner::AbstractLearner)(x)
 @interface update!(learner::AbstractLearner, experience)
+@interface get_priority(p::AbstractLearner, experience)
 
 #####
 # Explorer
@@ -119,6 +120,8 @@ given an observation of the environment.
 @interface get_prob(p::AbstractPolicy, obs, ::AbstractActionStyle)
 @interface get_prob(p::AbstractPolicy, obs, a) = get_prob(p, obs, ActionStyle(obs), a)
 @interface get_prob(p::AbstractPolicy, obs, ::AbstractActionStyle, a) = pdf(get_prob(p, obs), a)
+
+@interface get_priority(p::AbstractPolicy, experience)
 
 #####
 # Trajectory
