@@ -69,7 +69,7 @@ abstract type AbstractApproximatorStyle end
 An approximator is a functional object for value estimation.
 """
 @interface abstract type AbstractApproximator end
-@interface (app::AbstractApproximator)(x)
+@interface (app::AbstractApproximator)(obs) = app(get_state(obs))
 @interface update!(a::AbstractApproximator, correction)
 
 @interface ApproximatorStyle(x::AbstractApproximator)
