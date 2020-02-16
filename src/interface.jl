@@ -210,7 +210,6 @@ Ref: https://bair.berkeley.edu/blog/2019/12/12/mbpo/
 Preprocess an observation and return a new observation.
 """
 @interface abstract type AbstractPreprocessor end
-@interface (p::AbstractPreprocessor)(x)
 
 #####
 # Environment
