@@ -34,6 +34,7 @@ abstract type AbstractActionStyle end
     ActionStyle(x)
 
 Specify whether the observation contains a full action set or a minimal action set.
+By default the `MINIMAL_ACTION_SET` is returned.
 """
 @interface ActionStyle(x) = MINIMAL_ACTION_SET
 
@@ -52,6 +53,8 @@ ActionStyle(
 
 "An agent is a functional object which takes in an observation and returns an action."
 @interface abstract type AbstractAgent end
+
+@interface (agent::AbstractAgent)(obs) = agent(PRE_ACT_STAGE, obs)
 @interface (agent::AbstractAgent)(stage::AbstractStage, obs)
 @interface get_role(::AbstractAgent) = DEFAULT_PLAYER
 
@@ -61,8 +64,24 @@ ActionStyle(
 
 abstract type AbstractApproximatorStyle end
 
+"""
+For `VApproximator`, we assume that `(V::AbstractApproximator)(s)` is implemented.
+"""
 @interface struct VApproximator <: AbstractApproximatorStyle end
+
+"""
+For `QApproximator`, we assume that the following methods are implemented:
+
+- `(Q::AbstractApproximator)(s, a)`, estimate the Q value.
+- `(Q::AbstractApproximator)(s)`, estimate the Q value among all possible actions.
+"""
 @interface struct QApproximator <: AbstractApproximatorStyle end
+
+"""
+For `HybridApproximator`, the following methods are assumed to be implemented:
+- `(Q::AbstractApproximator)(s, a)`, estimate the Q value.
+- `(Q::AbstractApproximator)(s)`, estimate the state value.
+"""
 @interface struct HybridApproximator <: AbstractApproximatorStyle end
 
 """
@@ -70,6 +89,8 @@ An approximator is a functional object for value estimation.
 """
 @interface abstract type AbstractApproximator end
 @interface (app::AbstractApproximator)(obs) = app(get_state(obs))
+
+"Usually the `correction` is the gradient of inner parameters"
 @interface update!(a::AbstractApproximator, correction)
 
 @interface ApproximatorStyle(x::AbstractApproximator)
@@ -83,7 +104,7 @@ A learner is usually a wrapper around [`AbstractApproximator`](@ref)s.
 It defines the expected inputs and how to udpate inner approximators.
 """
 @interface abstract type AbstractLearner end
-@interface (learner::AbstractLearner)(x)
+@interface (learner::AbstractLearner)(obs)
 @interface update!(learner::AbstractLearner, experience)
 @interface get_priority(p::AbstractLearner, experience)
 
@@ -92,7 +113,7 @@ It defines the expected inputs and how to udpate inner approximators.
 #####
 
 """
-Define how to select actions.
+Define how to select an action based on action values.
 """
 @interface abstract type AbstractExplorer end
 @interface (p::AbstractExplorer)(x)
@@ -156,7 +177,6 @@ The length of `names` and `types` must match.
     NamedTuple{names,types}(Tuple(x[i] for x in get_trace(t)))
 
 @interface Base.isempty(t::AbstractTrajectory) = all(isempty(t) for t in get_trace(t))
-@interface isfull(t::AbstractTrajectory) = all(isfull(x) for x in get_trace(t))
 
 @interface function Base.empty!(t::AbstractTrajectory)
     for x in get_trace(t)
@@ -178,11 +198,6 @@ end
 
 @interface Base.pop!(t::AbstractTrajectory, s::Symbol...)
 
-"""
-    extract_experience(trajectory::AbstractTrajectory, learner::AbstractLearner)
-
-Extract transitions given a `learner`. Then the result is used to update the `learner`.
-"""
 @interface extract_experience(trajectory::AbstractTrajectory, learner::AbstractLearner)
 
 #####
@@ -276,6 +291,3 @@ Describe the span of observations and actions.
 @interface Base.in(x, s::AbstractSpace)
 @interface Base.rand(rng::AbstractRNG, s::AbstractSpace)
 @interface Base.eltype(s::AbstractSpace)
-
-@interface element_size(s::AbstractSpace)
-@interface element_length(s::AbstractSpace) = reduce(*, element_size(s))
