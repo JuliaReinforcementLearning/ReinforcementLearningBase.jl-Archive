@@ -69,6 +69,7 @@ abstract type AbstractApproximatorStyle end
 For `VApproximator`, we assume that `(V::AbstractApproximator)(s)` is implemented.
 """
 @interface struct VApproximator <: AbstractApproximatorStyle end
+@interface const V_APPROXIMATOR = VApproximator()
 
 """
 For `QApproximator`, we assume that the following methods are implemented:
@@ -77,19 +78,21 @@ For `QApproximator`, we assume that the following methods are implemented:
 - `(Q::AbstractApproximator)(s)`, estimate the Q value among all possible actions.
 """
 @interface struct QApproximator <: AbstractApproximatorStyle end
+@interface const Q_APPROXIMATOR = QApproximator()
 
 """
 For `HybridApproximator`, the following methods are assumed to be implemented:
-- `(Q::AbstractApproximator)(s, a)`, estimate the Q value.
-- `(Q::AbstractApproximator)(s)`, estimate the state value.
+- `(Q::AbstractApproximator)(s)`, estimate the state value and state action values.
 """
 @interface struct HybridApproximator <: AbstractApproximatorStyle end
+@interface const HYBRID_APPROXIMATOR = HybridApproximator()
 
 """
 An approximator is a functional object for value estimation.
 """
 @interface abstract type AbstractApproximator end
 @interface (app::AbstractApproximator)(obs) = app(get_state(obs))
+@interface batch_estimate(app, states)
 
 "Usually the `correction` is the gradient of inner parameters"
 @interface update!(a::AbstractApproximator, correction)
@@ -168,8 +171,9 @@ The length of `names` and `types` must match.
 @interface const SARTSA = (:state, :action, :reward, :terminal, :next_state, :next_action)
 
 @interface get_trace(t::AbstractTrajectory, s::Symbol)
-@interface get_trace(t::AbstractTrajectory, s::Symbol...) =
+@interface get_trace(t::AbstractTrajectory, s::NTuple{N, Symbol}) where N = 
     merge(NamedTuple(), (x, get_trace(t, x)) for x in s)
+@interface get_trace(t::AbstractTrajectory, s::Symbol...) = get_trace(t, s)
 @interface get_trace(t::AbstractTrajectory{names}) where {names} =
     merge(NamedTuple(), (s, get_trace(t, s)) for s in names)
 
