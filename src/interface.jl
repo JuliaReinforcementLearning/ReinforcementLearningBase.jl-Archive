@@ -92,7 +92,8 @@ An approximator is a functional object for value estimation.
 """
 @interface abstract type AbstractApproximator end
 @interface (app::AbstractApproximator)(obs) = app(get_state(obs))
-@interface batch_estimate(app, states)
+@interface batch_estimate(app::AbstractApproximator, states)
+@interface Base.copyto!(dest::AbstractApproximator, src::AbstractApproximator)
 
 "Usually the `correction` is the gradient of inner parameters"
 @interface update!(a::AbstractApproximator, correction)
