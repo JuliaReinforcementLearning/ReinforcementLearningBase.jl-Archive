@@ -172,11 +172,9 @@ The length of `names` and `types` must match.
 @interface const SARTSA = (:state, :action, :reward, :terminal, :next_state, :next_action)
 
 @interface get_trace(t::AbstractTrajectory, s::Symbol)
-@interface get_trace(t::AbstractTrajectory, s::NTuple{N, Symbol}) where N = 
-    merge(NamedTuple(), (x, get_trace(t, x)) for x in s)
+@interface get_trace(t::AbstractTrajectory, s::NTuple{N, Symbol}) where N = NamedTuple{s}(get_trace(t, x) for x in s)
 @interface get_trace(t::AbstractTrajectory, s::Symbol...) = get_trace(t, s)
-@interface get_trace(t::AbstractTrajectory{names}) where {names} =
-    merge(NamedTuple(), (s, get_trace(t, s)) for s in names)
+@interface get_trace(t::AbstractTrajectory{names}) where {names} = NamedTuple{names}(get_trace(t, x) for x in names)
 
 @interface Base.length(t::AbstractTrajectory) = maximum(length(x) for x in get_trace(t))
 @interface Base.size(t::AbstractTrajectory) = (length(t),)
