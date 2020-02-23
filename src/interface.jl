@@ -204,7 +204,13 @@ end
     pop!(t, names...)
 end
 
-@interface Base.pop!(t::AbstractTrajectory, s::Symbol...)
+@interface function Base.pop!(t::AbstractTrajectory, s::Symbol...)
+    for x in s
+        pop!(t, x)
+    end
+end
+
+@interface Base.pop!(t::AbstractTrajectory, s::Symbol)
 
 @interface extract_experience(trajectory::AbstractTrajectory, learner::AbstractLearner)
 
