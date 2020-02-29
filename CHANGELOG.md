@@ -2,12 +2,39 @@
 
 ## [Unreleased](https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/tree/HEAD)
 
-[Full Changelog](https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/compare/v0.6.0...HEAD)
+[Full Changelog](https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/compare/v0.6.3...HEAD)
 
 **Merged pull requests:**
 
+- Automatic JuliaFormatter.jl run [\#30](https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/pull/30) ([github-actions[bot]](https://github.com/apps/github-actions))
+- update doc [\#29](https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/pull/29) ([findmyway](https://github.com/findmyway))
+- Automatic JuliaFormatter.jl run [\#28](https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/pull/28) ([github-actions[bot]](https://github.com/apps/github-actions))
+
+## [v0.6.3](https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/tree/v0.6.3) (2020-02-26)
+
+[Full Changelog](https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/compare/v0.6.2...v0.6.3)
+
+**Merged pull requests:**
+
+- Fix nothing not in EmptySpace. [\#27](https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/pull/27) ([aterenin](https://github.com/aterenin))
+- Add EmptySpace, for NonInteractiveEnv upstream [\#26](https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/pull/26) ([aterenin](https://github.com/aterenin))
+
+## [v0.6.2](https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/tree/v0.6.2) (2020-02-23)
+
+[Full Changelog](https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/compare/v0.6.1...v0.6.2)
+
+**Merged pull requests:**
+
+- add batch\_estimate for approximator [\#25](https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/pull/25) ([findmyway](https://github.com/findmyway))
+
+## [v0.6.1](https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/tree/v0.6.1) (2020-02-20)
+
+[Full Changelog](https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/compare/v0.6.0...v0.6.1)
+
+**Merged pull requests:**
+
+- Add invalid action [\#24](https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/pull/24) ([findmyway](https://github.com/findmyway))
 - Automatic JuliaFormatter.jl run [\#23](https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/pull/23) ([github-actions[bot]](https://github.com/apps/github-actions))
-- Allow converting Set to DiscreteSpace [\#22](https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/pull/22) ([findmyway](https://github.com/findmyway))
 
 ## [v0.6.0](https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/tree/v0.6.0) (2020-02-17)
 
@@ -15,6 +42,7 @@
 
 **Merged pull requests:**
 
+- Allow converting Set to DiscreteSpace [\#22](https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/pull/22) ([findmyway](https://github.com/findmyway))
 - CompatHelper: add new compat entry for "CUDAapi" at version "3.1" [\#21](https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/pull/21) ([github-actions[bot]](https://github.com/apps/github-actions))
 - CompatHelper: add new compat entry for "CuArrays" at version "1.7" [\#20](https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/pull/20) ([github-actions[bot]](https://github.com/apps/github-actions))
 - CompatHelper: add new compat entry for "MacroTools" at version "0.5" [\#19](https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/pull/19) ([github-actions[bot]](https://github.com/apps/github-actions))
