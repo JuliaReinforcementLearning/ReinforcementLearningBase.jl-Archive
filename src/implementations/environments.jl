@@ -36,6 +36,12 @@ observe(env::WrappedEnv) = env.preprocessor(observe(env.env))
 # MultiThreadEnv
 #####
 
+"""
+    MultiThreadEnv(envs::Vector{<:AbstractEnv})
+
+Wrap multiple environments in one environment.
+Each environment will run in parallel by leveraging `Threads.@spawn`.
+"""
 struct MultiThreadEnv{O, E} <: AbstractEnv
     obs::BatchObs{O}
     envs::Vector{E}

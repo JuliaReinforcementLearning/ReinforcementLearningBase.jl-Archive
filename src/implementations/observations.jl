@@ -44,6 +44,11 @@ get_state(obs::StateOverriddenObs) = obs.state
 # BatchObs
 #####
 
+"""
+    BatchObs(obs::Vector)
+
+Wrap several observations into a batch.
+"""
 struct BatchObs{O}
     obs::Vector{O}
 end
