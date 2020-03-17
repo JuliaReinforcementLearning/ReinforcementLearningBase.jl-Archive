@@ -15,15 +15,16 @@ import Base.Threads.@spawn
 The observation of the inner `env` is first transformed by the `preprocessor`.
 And the action is transformed by `postprocessor` and then send to the inner `env`.
 """
-Base.@kwdef struct WrappedEnv{P<:AbstractPreprocessor,E<:AbstractEnv,T} <: AbstractEnv
-    preprocessor::P
+Base.@kwdef struct WrappedEnv{P,E<:AbstractEnv,T} <: AbstractEnv
+    preprocessor::P = identity
     env::E
     postprocessor::T = identity
 end
 
 WrappedEnv(p, env) = WrappedEnv(preprocessor = p, env = env)
 
-(env::WrappedEnv)(args...) = env.env(env.postprocessor(args)...)
+(env::WrappedEnv)(action) = env.env(env.postprocessor(action))
+(env::WrappedEnv)(player, action) = env.env(player, env.postprocessor(action))
 
 @forward WrappedEnv.env DynamicStyle,
 get_current_player,
