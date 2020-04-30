@@ -27,6 +27,8 @@ RandomPolicy(s; seed = nothing) = RandomPolicy(s, MersenneTwister(seed))
 RandomPolicy(env::AbstractEnv; seed = nothing) =
     RandomPolicy(get_action_space(env), MersenneTwister(seed))
 
+(p::RandomPolicy)(obs) = p(obs, ActionStyle(obs))
+
 function (p::RandomPolicy)(obs, ::FullActionSet)
     legal_actions = get_legal_actions(obs)
     length(legal_actions) == 0 ? get_invalid_action(obs) : rand(p.rng, legal_actions)
@@ -36,7 +38,27 @@ end
 (p::RandomPolicy)(obs::BatchObs, ::MinimalActionSet) =
     [rand(p.rng, p.action_space) for _ in 1:length(obs)]
 
-update!(p::RandomPolicy, experience) = nothing
+get_prob(p::RandomPolicy, obs) = get_prob(p, obs, ActionStyle(obs))
 
-get_prob(p::RandomPolicy, s) = fill(1 / length(p.action_space), length(p.action_space))
-get_prob(p::RandomPolicy, s, a) = 1 / length(p.action_space)
+get_prob(p::RandomPolicy, obs, ::MinimalActionSet) = fill(1 / length(p.action_space), length(p.action_space))
+
+function get_prob(p::RandomPolicy, obs, ::FullActionSet)
+    mask = get_legal_actions_mask(obs)
+    n = sum(mask)
+    prob = zeros(length(mask))
+    prob[mask] .= 1/n
+    prob
+end
+
+get_prob(p::RandomPolicy, obs, a) = get_prob(p, obs, a, ActionStyle(obs))
+
+get_prob(p::RandomPolicy, obs, a, ::MinimalActionSet) = 1 / length(p.action_space)
+
+function get_prob(p::RandomPolicy, obs, a, ::FullActionSet)
+    legal_actions = get_legal_actions(obs)
+    if a in legal_actions
+        1 / length(legal_actions)
+    else
+        0
+    end
+end
