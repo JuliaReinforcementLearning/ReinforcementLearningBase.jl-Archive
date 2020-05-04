@@ -61,14 +61,14 @@ Usually used in offline policies.
 #####
 
 """
-    (env::AbstractEnv)(action) = env(DEFAULT_PLAYER, action) -> nothing
+    (env::AbstractEnv)(action) = env(get_current_player(env), action) -> nothing
     (env::AbstractEnv)(player, action) -> nothing
 
 Super type of all reinforcement learning environments.
 """
 @interface abstract type AbstractEnv end
 
-@interface (env::AbstractEnv)(action) = env(DEFAULT_PLAYER, action)
+@interface (env::AbstractEnv)(action) = env(get_current_player(env), action)
 @interface (env::AbstractEnv)(player, action)
 
 #####
@@ -189,12 +189,20 @@ abstract type AbstractActionStyle end
 @interface const MINIMAL_ACTION_SET = MinimalActionSet()
 
 """
+    ActionStyle(env::AbstractEnv)
     ActionStyle(obs)
 
 Specify whether the observation contains a full action set or a minimal action set.
 By default the [`MINIMAL_ACTION_SET`](@ref) is returned.
 """
 @interface ActionStyle(obs) = MINIMAL_ACTION_SET
+
+ActionStyle(obs::NamedTuple{(:reward, :terminal, :state, :legal_actions)}) = FULL_ACTION_SET
+ActionStyle(obs::NamedTuple{(:reward, :terminal, :state, :legal_actions_mask)}) =
+    FULL_ACTION_SET
+ActionStyle(
+    obs::NamedTuple{(:reward, :terminal, :state, :legal_actions, :legal_actions_mask)},
+) = FULL_ACTION_SET
 
 #####
 ## general
@@ -210,8 +218,7 @@ By default the [`MINIMAL_ACTION_SET`](@ref) is returned.
 """
 @interface get_observation_space(env::AbstractEnv) = env.observation_space
 
-"Return [`DEFAULT_PLAYER`](@ref) by default"
-@interface get_current_player(env::AbstractEnv) = DEFAULT_PLAYER
+@interface get_current_player(env::AbstractEnv)
 
 """
     get_player_id(player, env::AbstractEnv) -> Int

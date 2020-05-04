@@ -31,7 +31,12 @@ RandomPolicy(env::AbstractEnv; seed = nothing) =
 
 function (p::RandomPolicy)(obs, ::FullActionSet)
     legal_actions = get_legal_actions(obs)
-    length(legal_actions) == 0 ? get_invalid_action(obs) : rand(p.rng, legal_actions)
+    if length(legal_actions) == 0
+        # in this case, we return an random action instead of throwing error
+        rand(p.rng, p.action_space)
+    else
+        rand(p.rng, legal_actions)
+    end
 end
 
 (p::RandomPolicy)(obs, ::MinimalActionSet) = rand(p.rng, p.action_space)
