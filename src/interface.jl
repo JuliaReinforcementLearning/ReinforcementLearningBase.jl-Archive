@@ -38,7 +38,7 @@ Update the policy `π` with online/offline experience.
 """
     get_prob(π::AbstractPolicy, obs)
 
-Get the probability distribution of actions based on policy `π` given an observation `obs`. The result is usually a [`Distribution`](https://juliastats.org/Distributions.jl/stable/types/#Distributions-1). More specificaly, for discrete actions, a [`Categorical`](https://juliastats.org/Distributions.jl/stable/univariate/#Distributions.Categorical) distribution must be returned.
+Get the probability distribution of actions based on policy `π` given an observation `obs`. 
 """
 @interface get_prob(π::AbstractPolicy, obs)
 

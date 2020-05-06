@@ -45,6 +45,9 @@ end
 
 get_prob(p::RandomPolicy, obs) = get_prob(p, obs, ActionStyle(obs))
 
+# TODO: TBD
+# Ideally we should return a Categorical distribution.
+# But this means we need to introduce an extra dependency of Distributions
 get_prob(p::RandomPolicy, obs, ::MinimalActionSet) = fill(1 / length(p.action_space), length(p.action_space))
 
 function get_prob(p::RandomPolicy, obs, ::FullActionSet)
