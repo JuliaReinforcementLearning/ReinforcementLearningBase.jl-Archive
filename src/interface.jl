@@ -69,6 +69,13 @@ Super type of all reinforcement learning environments.
 @interface (env::AbstractEnv)(action) = env(get_current_player(env), action)
 @interface (env::AbstractEnv)(player, action)
 
+"""
+    get_env_state(env::AbstractEnv)
+
+Get the internal state of an [`AbstractEnv`](@ref), useful for search based algorithms.
+"""
+@interface get_env_state(env::AbstractEnv)
+
 #####
 ## Traits for Environment
 ## mostly borrowed from https://github.com/deepmind/open_spiel/blob/master/open_spiel/spiel.h
@@ -244,23 +251,26 @@ end
 @interface get_current_player(env::AbstractEnv)
 
 """
-    get_player_id(player, env::AbstractEnv) -> Int
+    get_chance_player(env::AbstractEnv)
+
+Only valid for environments with a chance player.
+"""
+@interface get_chance_player(env::AbstractEnv)
+
+"""
+    get_players(player, env::AbstractEnv) -> Int
 
 Get the index of current player. Result should be an Int and starts from 1.
 Usually used in multi-agent environments.
 """
-@interface get_player_id(player, env::AbstractEnv)
-
-"""
-    get_num_players(env::AbstractEnv) -> Int
-"""
-@interface get_num_players(env::AbstractEnv) = 1
+@interface get_players(player, env::AbstractEnv) = [:DEFAULT_PLAYER]
 
 "Show the environment in a user-friendly manner"
 @interface render(env::AbstractEnv)
 
 "Reset the internal state of an environment"
 @interface reset!(env::AbstractEnv)
+@interface reset!(env::AbstractEnv, state)
 
 "Set the seed of internal rng"
 @interface Random.seed!(env::AbstractEnv, seed)
@@ -324,8 +334,32 @@ get_legal_actions(obs::NamedTuple{(:reward, :terminal, :state, :legal_actions)})
 
 """
     get_state(obs)
+
+Usually return a tensor form state. See also [`get_state_str`](@ref).
 """
 @interface get_state(obs) = obs.state
+
+"""
+    get_state_str(obs)
+
+Get the string repr of state. See also [`get_state`](@ref).
+"""
+@interface get_state_str(obs) = obs.state
+
+"""
+    get_env_state(obs)
+
+Usually used together with `reset!(env, env_state)`.
+"""
+@interface get_env_state(obs)
+
+"""
+    get_chance_outcome(obs)
+
+For observation from a chance agent. We can get the action distribution from it.
+For discrete actions, `AbstractVector{Pair{Int, Float64}}` is returned.
+"""
+@interface get_chance_outcome(obs)
 
 #####
 ## Space

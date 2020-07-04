@@ -4,6 +4,7 @@ authors = ["Johanni Brea <jbrea@users.noreply.github.com>", "Jun Tian <tianjun.c
 version = "0.7.3"
 
 [deps]
+AbstractTrees = "1520ce14-60c1-5f80-bbc7-55ef81b5835c"
 MacroTools = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 

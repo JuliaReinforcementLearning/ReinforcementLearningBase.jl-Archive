@@ -1,10 +1,27 @@
 export WrappedEnv,
-    MultiThreadEnv, AbstractPreprocessor, CloneStatePreprocessor, ComposedPreprocessor
+    MultiThreadEnv, AbstractPreprocessor, CloneStatePreprocessor, ComposedPreprocessor, children, has_children, child
 
 using MacroTools: @forward
 using Random
+using AbstractTrees
 
 import Base.Threads.@spawn
+
+function child(env::AbstractEnv, action)
+    new_env = copy(env)
+    new_env(action)
+    new_env
+end
+
+function AbstractTrees.children(env::AbstractEnv)
+    obs = observe(env)
+    [child(env, action) for action in get_legal_actions(obs)]
+end
+
+function AbstractTrees.has_children(env::AbstractEnv)
+    obs = observe(env)
+    !get_terminal(obs)
+end
 
 #####
 # WrappedEnv
@@ -36,8 +53,7 @@ ActionStyle,
 get_action_space,
 get_observation_space,
 get_current_player,
-get_player_id,
-get_num_players,
+get_players,
 get_history,
 render,
 reset!,
