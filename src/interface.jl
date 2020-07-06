@@ -14,6 +14,7 @@ Julia. From the concept level, they can be organized in the following parts:
 import Base: copy, copy!, length, in, eltype
 import Random: seed!, rand, AbstractRNG
 import AbstractTrees: children, has_children
+import Markdown
 
 #####
 # Policy
@@ -263,11 +264,30 @@ ActionStyle(
     obs::NamedTuple{(:reward, :terminal, :state, :legal_actions, :legal_actions_mask)},
 ) = FULL_ACTION_SET
 
+function print_traits(io::IO, env::AbstractEnv)
+    s = """
+    ## Traits
+
+    | Trait Type | Value |
+    |:---------- | ----- |
+    | NumAgentStyle | $(NumAgentStyle(env)) |
+    | ActionStyle | $(ActionStyle(env)) |
+    | DynamicStyle | $(DynamicStyle(env)) |
+    | ChanceStyle | $(ChanceStyle(env)) |
+    | InformationStyle | $(InformationStyle(env)) |
+    | RewardStyle | $(RewardStyle(env)) |
+    | UtilityStyle | $(UtilityStyle(env)) |
+    """
+    print(io, Markdown.parse(s))
+end
+
 #####
 # General
 #####
 
 const DEFAULT_PLAYER = :DEFAULT_PLAYER
+
+@api get_name(env::AbstractEnv) = typeof(env).name
 
 @api (env::AbstractEnv)(action, player=get_current_player(env))
 
@@ -389,6 +409,18 @@ end
 @env_api has_children(env::AbstractEnv) = !get_terminal(env)
 
 @env_api children(env::AbstractEnv) = (child(env, action) for action in get_legal_actions(env))
+
+function Base.show(io::IO, env::AbstractEnv)
+    println(io, Markdown.parse("""
+    # $(get_name(env))
+    """))
+    print_traits(io, env)
+    println()
+    println(io, Markdown.parse("""
+    ## Current state
+    $(get_state(env))
+    """))
+end
 
 #####
 ## Space

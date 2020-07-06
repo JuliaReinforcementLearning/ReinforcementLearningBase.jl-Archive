@@ -17,13 +17,14 @@ Assume you have \$10 in your pocket, and you are faced with the following three 
 """
 mutable struct LotteryEnv <: AbstractEnv
     reward::Int
-    is_done::Bool
+    terminal::Bool
     rng::MersenneTwister
 end
 
 LotteryEnv(; seed = nothing) = LotteryEnv(0, false, MersenneTwister(seed))
 
 RLBase.get_actions(env::LotteryEnv) = (:PowerRich, :MegaHaul, nothing)
+RLBase.get_state(env::LotteryEnv) = env.terminal ? 2 : 1
 
 function (env::LotteryEnv)(action::Union{Symbol,Nothing})
     if action == :PowerRich
@@ -33,9 +34,7 @@ function (env::LotteryEnv)(action::Union{Symbol,Nothing})
     else
         env.reward = 0
     end
-    env.is_done = true
+    env.terminal = true
 end
 
-RLBase.get_reward(env::LotteryEnv) = env.reward
-RLBase.get_terminal(env::LotteryEnv) = env.is_done
-RLBase.reset!(env::LotteryEnv) = env.is_done = false
+RLBase.reset!(env::LotteryEnv) = env.terminal = false
