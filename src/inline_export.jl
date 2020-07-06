@@ -1,24 +1,32 @@
 # inspired by
 # - https://github.com/dalum/InlineExports.jl/blob/master/src/InlineExports.jl
 # - https://github.com/QuantumBFS/YaoBase.jl/blob/master/src/utils/interface.jl
+const ENVIRONMENT_API = []
 
-macro interface(ex)
-    interfacem(__module__, __source__, ex)
+macro api(ex)
+    interfacem(__module__, __source__, ex, [])
 end
 
-function interfacem(__module__::Module, __source__::LineNumberNode, ex::Expr)
+macro env_api(ex)
+    interfacem(__module__, __source__, ex, ENVIRONMENT_API)
+end
+
+function interfacem(__module__::Module, __source__::LineNumberNode, ex::Expr, store)
     name, is_body_missing = handle(ex)
     if name === nothing
         :(error("unknown expression"))
-    elseif is_body_missing
-        quote
-            export $(esc(name))
-            Core.@__doc__ $(esc(ex)) = error("method not implemented")
-        end
     else
-        quote
-            export $(esc(name))
-            Core.@__doc__ $(esc(ex))
+        push!(store, name)
+        if is_body_missing
+            quote
+                export $(esc(name))
+                Core.@__doc__ $(esc(ex)) = error("method not implemented")
+            end
+        else
+            quote
+                export $(esc(name))
+                Core.@__doc__ $(esc(ex))
+            end
         end
     end
 end

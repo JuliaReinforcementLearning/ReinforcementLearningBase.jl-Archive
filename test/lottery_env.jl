@@ -23,7 +23,7 @@ end
 
 LotteryEnv(; seed = nothing) = LotteryEnv(0, false, MersenneTwister(seed))
 
-RLBase.get_action_space(env::LotteryEnv) = DiscreteSpace((:PowerRich, :MegaHaul, nothing))
+RLBase.get_actions(env::LotteryEnv) = (:PowerRich, :MegaHaul, nothing)
 
 function (env::LotteryEnv)(action::Union{Symbol,Nothing})
     if action == :PowerRich
@@ -36,6 +36,6 @@ function (env::LotteryEnv)(action::Union{Symbol,Nothing})
     env.is_done = true
 end
 
-RLBase.observe(env::LotteryEnv) = (reward = env.reward, terminal = env.is_done)
-
+RLBase.get_reward(env::LotteryEnv) = env.reward
+RLBase.get_terminal(env::LotteryEnv) = env.is_done
 RLBase.reset!(env::LotteryEnv) = env.is_done = false

@@ -1,27 +1,10 @@
 export WrappedEnv,
-    MultiThreadEnv, AbstractPreprocessor, CloneStatePreprocessor, ComposedPreprocessor, children, has_children, child
+    MultiThreadEnv, AbstractPreprocessor, CloneStatePreprocessor, ComposedPreprocessor
 
 using MacroTools: @forward
 using Random
-using AbstractTrees
 
 import Base.Threads.@spawn
-
-function child(env::AbstractEnv, action)
-    new_env = copy(env)
-    new_env(action)
-    new_env
-end
-
-function AbstractTrees.children(env::AbstractEnv)
-    obs = observe(env)
-    [child(env, action) for action in get_legal_actions(obs)]
-end
-
-function AbstractTrees.has_children(env::AbstractEnv)
-    obs = observe(env)
-    !get_terminal(obs)
-end
 
 #####
 # WrappedEnv
@@ -39,26 +22,13 @@ Base.@kwdef struct WrappedEnv{P,E<:AbstractEnv,T} <: AbstractEnv
     postprocessor::T = identity
 end
 
-"TODO: Deprecate"
-WrappedEnv(p, env) = WrappedEnv(preprocessor = p, env = env)
-
 (env::WrappedEnv)(args...) = env.env(env.postprocessor(args)...)
 
-@forward WrappedEnv.env DynamicStyle,
-ChanceStyle,
-InformationStyle,
-RewardStyle,
-UtilityStyle,
-ActionStyle,
-get_action_space,
-get_observation_space,
-get_current_player,
-get_players,
-get_history,
-render,
-reset!,
-Random.seed!,
-Base.copy
+for f in ENVIRONMENT_API
+    if f != :observe
+        @eval $f(x::WrappedEnv, args...;kwargs...) = $f(x.env, args...;kwargs...)
+    end
+end
 
 observe(env::WrappedEnv, player) = env.preprocessor(observe(env.env, player))
 observe(env::WrappedEnv) = env.preprocessor(observe(env.env))
@@ -118,9 +88,6 @@ end
 
 MultiThreadEnv(envs) = MultiThreadEnv(BatchObs([observe(env) for env in envs]), envs)
 
-get_action_space(env::MultiThreadEnv) = get_action_space(env.envs[1])
-get_observation_space(env::MultiThreadEnv) = get_observation_space(env.envs[1])
-
 function (env::MultiThreadEnv)(actions)
     @sync for i in 1:length(env)
         @spawn begin
@@ -151,4 +118,9 @@ end
 
 @forward MultiThreadEnv.envs Base.getindex, Base.length, Base.setindex!
 
-# TODO general APIs for MultiThreadEnv are missing
+# !!! some might not be meaningful, use with caution.
+for f in ENVIRONMENT_API
+    if f != :reset
+        @eval $f(x::MultiThreadEnv, args...;kwargs...) = $f(x.envs[1], args...;kwargs...)
+    end
+end

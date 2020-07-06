@@ -1,6 +1,6 @@
 export StateOverriddenObs, BatchObs, RewardOverriddenObs
 
-using MacroTools: @forward
+using MacroTools:@forward
 
 #####
 # StateOverriddenObs
@@ -32,13 +32,27 @@ Base.@kwdef struct StateOverriddenObs{O,S}
     state::S
 end
 
-@forward StateOverriddenObs.obs ActionStyle,
-get_legal_actions,
-get_legal_actions_mask,
-get_terminal,
-get_reward
+for f in ENVIRONMENT_API
+    if f != :get_state
+        @eval $f(x::StateOverriddenObs, args...;kwargs...) = $f(x.obs, args...;kwargs...)
+    end
+end
 
 get_state(obs::StateOverriddenObs) = obs.state
+
+Base.@kwdef struct RewardOverriddenObs{O, R}
+    obs::O
+    reward::R
+end
+
+for f in ENVIRONMENT_API
+    if f != :get_reward
+        @eval $f(x::RewardOverriddenObs, args...;kwargs...) = $f(x.obs, args...;kwargs...)
+    end
+end
+
+
+get_reward(obs::RewardOverriddenObs) = obs.reward
 
 #####
 # BatchObs
@@ -79,15 +93,13 @@ function get_state(obs::BatchObs)
     state
 end
 
-struct RewardOverriddenObs{O, R}
-    obs::O
-    reward::R
+function get_current_player(obs::BatchObs)
+    [get_current_player(x) for x in obs]
 end
 
-@forward RewardOverriddenObs.obs ActionStyle,
-get_legal_actions,
-get_legal_actions_mask,
-get_terminal,
-get_state
-
-get_reward(obs::RewardOverriddenObs) = obs.reward
+# !!! need review
+for f in ENVIRONMENT_API
+    if f ∉ [:get_reward, :get_state, :get_legal_actions, :get_terminal, :get_current_player]
+        @eval $f(x::BatchObs, args...;kwargs...) = $f(x.obs[1], args...;kwargs...)
+    end
+end
