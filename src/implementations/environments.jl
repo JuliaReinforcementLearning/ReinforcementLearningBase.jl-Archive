@@ -1,10 +1,27 @@
-export WrappedEnv,
-    MultiThreadEnv, AbstractPreprocessor, CloneStatePreprocessor, ComposedPreprocessor
+export WrappedEnv, SubjectiveEnv, MultiThreadEnv,
+    AbstractPreprocessor, CloneStatePreprocessor, ComposedPreprocessor
 
 using MacroTools: @forward
 using Random
 
 import Base.Threads.@spawn
+
+#####
+# SubjectiveEnv
+#####
+
+Base.@kwdef struct SubjectiveEnv{E<:AbstractEnv,P}
+    env::E
+    player::P
+end
+
+for f in ENV_API
+    @eval $f(x::SubjectiveEnv, args...;kwargs...) = $f(x.env, args...;kwargs...)
+end
+
+for f in MULTI_AGENT_ENV_API
+    @eval $f(x::SubjectiveEnv) = $f(x.env, x.player)
+end
 
 #####
 # WrappedEnv
@@ -24,7 +41,7 @@ end
 
 (env::WrappedEnv)(args...) = env.env(env.postprocessor(args)...)
 
-for f in ENVIRONMENT_API
+for f in vcat(ENV_API, MULTI_AGENT_ENV_API)
     if f != :observe
         @eval $f(x::WrappedEnv, args...;kwargs...) = $f(x.env, args...;kwargs...)
     end
@@ -119,7 +136,7 @@ end
 @forward MultiThreadEnv.envs Base.getindex, Base.length, Base.setindex!
 
 # !!! some might not be meaningful, use with caution.
-for f in ENVIRONMENT_API
+for f in vcat(ENV_API, MULTI_AGENT_ENV_API)
     if f != :reset
         @eval $f(x::MultiThreadEnv, args...;kwargs...) = $f(x.envs[1], args...;kwargs...)
     end

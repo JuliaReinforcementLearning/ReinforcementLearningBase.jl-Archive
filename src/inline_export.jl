@@ -1,14 +1,23 @@
 # inspired by
 # - https://github.com/dalum/InlineExports.jl/blob/master/src/InlineExports.jl
 # - https://github.com/QuantumBFS/YaoBase.jl/blob/master/src/utils/interface.jl
-const ENVIRONMENT_API = []
+
+# TODO: use MLStyle.jl instead!
+
+const API = []
+const ENV_API = []
+const MULTI_AGENT_ENV_API = []
 
 macro api(ex)
-    interfacem(__module__, __source__, ex, [])
+    interfacem(__module__, __source__, ex, API)
 end
 
 macro env_api(ex)
-    interfacem(__module__, __source__, ex, ENVIRONMENT_API)
+    interfacem(__module__, __source__, ex, ENV_API)
+end
+
+macro multi_agent_env_api(ex)
+    interfacem(__module__, __source__, ex, MULTI_AGENT_ENV_API)
 end
 
 function interfacem(__module__::Module, __source__::LineNumberNode, ex::Expr, store)

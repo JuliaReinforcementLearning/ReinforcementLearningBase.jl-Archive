@@ -32,7 +32,7 @@ Base.@kwdef struct StateOverriddenObs{O,S}
     state::S
 end
 
-for f in ENVIRONMENT_API
+for f in vcat(ENV_API, MULTI_AGENT_ENV_API)
     if f != :get_state
         @eval $f(x::StateOverriddenObs, args...;kwargs...) = $f(x.obs, args...;kwargs...)
     end
@@ -45,7 +45,7 @@ Base.@kwdef struct RewardOverriddenObs{O, R}
     reward::R
 end
 
-for f in ENVIRONMENT_API
+for f in vcat(ENV_API, MULTI_AGENT_ENV_API)
     if f != :get_reward
         @eval $f(x::RewardOverriddenObs, args...;kwargs...) = $f(x.obs, args...;kwargs...)
     end
@@ -98,7 +98,7 @@ function get_current_player(obs::BatchObs)
 end
 
 # !!! need review
-for f in ENVIRONMENT_API
+for f in vcat(ENV_API, MULTI_AGENT_ENV_API)
     if f ∉ [:get_reward, :get_state, :get_legal_actions, :get_terminal, :get_current_player]
         @eval $f(x::BatchObs, args...;kwargs...) = $f(x.obs[1], args...;kwargs...)
     end

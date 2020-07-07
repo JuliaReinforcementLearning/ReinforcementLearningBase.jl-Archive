@@ -7,8 +7,6 @@ Julia. From the concept level, they can be organized in the following parts:
 - [EnvironmentModel](@ref)
 - [Environment](@ref)
   - [Traits for Environment](@ref)
-  - [Observation of Environment](@ref)
-  - [Observation Space and Action Space](@ref)
 """ RLBase
 
 import Base: copy, copy!, length, in, eltype
@@ -85,7 +83,7 @@ abstract type AbstractNumAgentStyle end
 
 @api struct MultiAgent{N} <: AbstractNumAgentStyle end
 
-function MultiAgent(n::Int)
+function MultiAgent(n::Integer)
     if n < 0
         throw(ArgumentError("number of agents must be > 1, get $n"))
     elseif n == 1
@@ -254,15 +252,7 @@ abstract type AbstractActionStyle end
 Specify whether the observation contains a full action set or a minimal action set.
 By default the [`MINIMAL_ACTION_SET`](@ref) is returned.
 """
-@env_api ActionStyle(obs) = MINIMAL_ACTION_SET
-
-# !!! TODO: Deprecate
-ActionStyle(obs::NamedTuple{(:reward, :terminal, :state, :legal_actions)}) = FULL_ACTION_SET
-ActionStyle(obs::NamedTuple{(:reward, :terminal, :state, :legal_actions_mask)}) =
-    FULL_ACTION_SET
-ActionStyle(
-    obs::NamedTuple{(:reward, :terminal, :state, :legal_actions, :legal_actions_mask)},
-) = FULL_ACTION_SET
+@env_api ActionStyle(env::AbstractEnv) = MINIMAL_ACTION_SET
 
 function print_traits(io::IO, env::AbstractEnv)
     s = """
@@ -301,24 +291,24 @@ const DEFAULT_PLAYER = :DEFAULT_PLAYER
 Get all available actions from environment.
 See also: [`get_legal_actions`](@ref)
 """
-@env_api get_actions(env::AbstractEnv, player=get_current_player(env))
+@multi_agent_env_api get_actions(env::AbstractEnv, player=get_current_player(env))
 
 """
     get_legal_actions(env, player=get_current_player(env))
 
 Only valid for observations of [`FULL_ACTION_SET`](@ref).
 """
-@env_api get_legal_actions(env::AbstractEnv, player=get_current_player(env))
+@multi_agent_env_api get_legal_actions(env::AbstractEnv, player=get_current_player(env))
 
 """
-    get_legal_actions_mask(env) -> AbstractArray{Bool}
+    get_legal_actions_mask(env, player=get_current_player(env)) -> AbstractArray{Bool}
 
 Required for environments of [`FULL_ACTION_SET`](@ref).
 """
-@env_api get_legal_actions_mask(env::AbstractEnv, player=get_current_player(env))
+@multi_agent_env_api get_legal_actions_mask(env::AbstractEnv, player=get_current_player(env))
 
 """
-    get_state(env) -> state
+    get_state(env, player=get_current_player(env)) -> state
 
 The state can be of any type. Usually it's an `AbstractArray`.
 See also https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/issues/48
@@ -326,7 +316,7 @@ If `state` is not an `AbstractArray`, to use it in neural network algorithms,
 a `convert(AbstractArray, state)` should be provided.
 To get the string representation, a `convert(String, state)` should also be provided.
 """
-@env_api get_state(env::AbstractEnv, player=get_current_player(env)) = env.state
+@multi_agent_env_api get_state(env::AbstractEnv, player=get_current_player(env)) = env.state
 
 """
     get_current_player(env)
@@ -358,15 +348,9 @@ Only valid for environments of [`SIMULTANEOUS`](@ref) style.
 
 Used in imperfect multi-agent environments.
 """
-@env_api get_spectator_player(env)
+@env_api get_spectator_player(env::AbstractEnv)
 
-"""
-    get_players(player, env::AbstractEnv) -> Int
-
-Get the index of current player. Result should be an Int and starts from 1.
-Usually used in multi-agent environments.
-"""
-@env_api get_players(player, env::AbstractEnv) = (DEFAULT_PLAYER,)
+@env_api get_players(env::AbstractEnv) = (DEFAULT_PLAYER,)
 
 @env_api get_num_players(env::AbstractEnv) = get_num_players(NumAgentStyle(env))
 
@@ -380,25 +364,25 @@ get_num_players(::MultiAgent{N}) where N = N
 @env_api seed!(env::AbstractEnv, seed)
 
 "Get all actions in each ply"
-@env_api get_history(env::AbstractEnv)
+@multi_agent_env_api get_history(env::AbstractEnv, player=get_current_player(env))
 
 """
-    get_terminal(env)
+    get_terminal(env, player=get_current_player(env))
 """
-@env_api get_terminal(env) = env.terminal
+@multi_agent_env_api get_terminal(env::AbstractEnv, player=get_current_player(env)) = env.terminal
 
 """
-    get_reward(env)
+    get_reward(env, player=get_current_player(env))
 """
-@env_api get_reward(env) = env.reward
+@multi_agent_env_api get_reward(env::AbstractEnv, player=get_current_player(env)) = env.reward
 
 """
-    get_prob(env, player)
+    get_prob(env, player=get_chance_player(env))
 
 Only valid for environments of [`EXPLICIT_STOCHASTIC`](@ref) style.
 Here `player` must be a chance player.
 """
-@env_api get_prob(env::AbstractEnv, player)
+@multi_agent_env_api get_prob(env::AbstractEnv, player=get_chance_player(env))
 
 @env_api function child(env::AbstractEnv, action)
     new_env = copy(env)
@@ -415,7 +399,7 @@ function Base.show(io::IO, env::AbstractEnv)
     # $(get_name(env))
     """))
     print_traits(io, env)
-    println()
+    println(io)
     println(io, Markdown.parse("""
     ## Current state
     $(get_state(env))
@@ -443,23 +427,6 @@ Usually the following methods are implemented:
 @api eltype(s::AbstractSpace)
 
 #####
-# Observation
-#####
-
-struct Observation{E<:AbstractEnv,P}
-    env::E
-    player::P
-end
-
-@env_api function observe(env::AbstractEnv, player=get_current_player(env))
-    if NumAgentStyle(env) === SINGLE_AGENT
-        env
-    else
-        Observation(env, player)
-    end
-end
-
-#####
 # EnvironmentModel
 #####
 
@@ -471,5 +438,6 @@ Ref: https://bair.berkeley.edu/blog/2019/12/12/mbpo/
 - Sampling-based planning
 - Model-based data generation
 - Value-equivalence prediction
+[Model-based Reinforcement Learning: A Survey.](https://arxiv.org/pdf/2006.16712.pdf)
 """
 @api abstract type AbstractEnvironmentModel end
