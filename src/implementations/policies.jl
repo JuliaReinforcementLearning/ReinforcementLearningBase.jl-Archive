@@ -21,7 +21,7 @@ Random.seed!(p::RandomPolicy, seed) = Random.seed!(p.rng, seed)
 """
     RandomPolicy(;seed=nothing)
 
-Randomly choose an action from `get_legal_actions(obs)` at runtime.
+Randomly choose an action from `get_legal_actions(env)` at runtime.
 """
 RandomPolicy(; seed = nothing) = RandomPolicy(nothing;seed=seed)
 
@@ -48,28 +48,28 @@ function RandomPolicy(env::AbstractEnv; seed = nothing)
     end
 end
 
-(p::RandomPolicy{Nothing})(obs) = rand(p.rng, get_legal_actions(obs))
-(p::RandomPolicy)(obs) = rand(p.rng, p.action_space)
-(p::RandomPolicy)(obs::BatchObs) = [p(x) for x in obs]
+(p::RandomPolicy{Nothing})(env) = rand(p.rng, get_legal_actions(env))
+(p::RandomPolicy)(env) = rand(p.rng, p.action_space)
+(p::RandomPolicy)(env::MultiThreadEnv) = [p(x) for x in env]
 
 # TODO: TBD
 # Ideally we should return a Categorical distribution.
 # But this means we need to introduce an extra dependency of Distributions
 # watch https://github.com/JuliaStats/Distributions.jl/issues/1139
-get_prob(p::RandomPolicy, obs) = fill(1 / length(p.action_space), length(p.action_space))
+get_prob(p::RandomPolicy, env) = fill(1 / length(p.action_space), length(p.action_space))
 
-function get_prob(p::RandomPolicy{Nothing}, obs)
-    mask = get_legal_actions_mask(obs)
+function get_prob(p::RandomPolicy{Nothing}, env)
+    mask = get_legal_actions_mask(env)
     n = sum(mask)
     prob = zeros(length(mask))
     prob[mask] .= 1 / n
     prob
 end
 
-get_prob(p::RandomPolicy, obs, a) = 1 / length(p.action_space)
+get_prob(p::RandomPolicy, env, a) = 1 / length(p.action_space)
 
-function get_prob(p::RandomPolicy{Nothing}, obs, a)
-    legal_actions = get_legal_actions(obs)
+function get_prob(p::RandomPolicy{Nothing}, env, a)
+    legal_actions = get_legal_actions(env)
     if a in legal_actions
         1 / length(legal_actions)
     else

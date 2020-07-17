@@ -16,7 +16,7 @@ function Base.run(Π, env::AbstractEnv, ::Sequential, ::MultiAgent)
     is_terminal = false
     while !is_terminal
         for π in Π
-            if get_terminal(obs)
+            if get_terminal(env)
                 is_terminal = true
                 break
             end

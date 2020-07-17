@@ -19,12 +19,12 @@ import Markdown
 #####
 
 """
-    (π::AbstractPolicy)(obs) -> action
+    (π::AbstractPolicy)(env) -> action
 
-Policy is the most basic concept in reinforcement learning. A policy is a functional object which takes in an observation and generate an action.
+Policy is the most basic concept in reinforcement learning. A policy is a functional object which takes in an environemnt and generate an action.
 """
 @api abstract type AbstractPolicy end
-@api (π::AbstractPolicy)(obs)
+@api (π::AbstractPolicy)(env)
 
 
 """
@@ -35,18 +35,18 @@ Update the policy `π` with online/offline experience.
 @api update!(π::AbstractPolicy, experience) = nothing
 
 """
-    get_prob(π::AbstractPolicy, obs)
+    get_prob(π::AbstractPolicy, env)
 
-Get the probability distribution of actions based on policy `π` given an observation `obs`. 
+Get the probability distribution of actions based on policy `π` given an `env`. 
 """
-@api get_prob(π::AbstractPolicy, obs)
+@api get_prob(π::AbstractPolicy, env)
 
 """
-    get_prob(π::AbstractPolicy, obs, action)
+    get_prob(π::AbstractPolicy, env, action)
 
 Only valid for environments with discrete action space.
 """
-@api get_prob(π::AbstractPolicy, obs, action)
+@api get_prob(π::AbstractPolicy, env, action)
 
 """
     get_priority(π::AbstractPolicy, experience)
@@ -249,7 +249,7 @@ abstract type AbstractActionStyle end
 """
     ActionStyle(env::AbstractEnv)
 
-Specify whether the observation contains a full action set or a minimal action set.
+Specify whether the current state of `env` contains a full action set or a minimal action set.
 By default the [`MINIMAL_ACTION_SET`](@ref) is returned.
 """
 @env_api ActionStyle(env::AbstractEnv) = MINIMAL_ACTION_SET
@@ -296,7 +296,7 @@ See also: [`get_legal_actions`](@ref)
 """
     get_legal_actions(env, player=get_current_player(env))
 
-Only valid for observations of [`FULL_ACTION_SET`](@ref).
+Only valid for environments of [`FULL_ACTION_SET`](@ref).
 """
 @multi_agent_env_api get_legal_actions(env::AbstractEnv, player=get_current_player(env))
 
@@ -416,7 +416,7 @@ end
 #####
 
 """
-Describe the span of observations and actions.
+Describe the span of states and actions.
 Usually the following methods are implemented:
 
 - `Base.length`

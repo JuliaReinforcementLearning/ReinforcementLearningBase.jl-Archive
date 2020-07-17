@@ -3,5 +3,5 @@
     policy = RandomPolicy(env; seed = 123)
     reset!(env)
     run(policy, env)
-    @test get_terminal(observe(env))
+    @test get_terminal(env)
 end
