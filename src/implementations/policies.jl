@@ -6,6 +6,8 @@ using Random
     RandomPolicy(action_space, rng)
 
 Construct a random policy with actions in `action_space`.
+If `action_space` is `nothing` then the `legal_actions` at runtime
+will be used to randomly sample a valid action.
 """
 struct RandomPolicy{S,R<:AbstractRNG} <: AbstractPolicy
     action_space::S

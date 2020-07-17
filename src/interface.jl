@@ -384,6 +384,11 @@ Here `player` must be a chance player.
 """
 @multi_agent_env_api get_prob(env::AbstractEnv, player=get_chance_player(env))
 
+"""
+    child(env::AbstractEnv, action)
+
+Treat the `env` as a game tree. Create an independent child after applying `action`.
+"""
 @env_api function child(env::AbstractEnv, action)
     new_env = copy(env)
     new_env(action)
@@ -439,5 +444,6 @@ Ref: https://bair.berkeley.edu/blog/2019/12/12/mbpo/
 - Model-based data generation
 - Value-equivalence prediction
 [Model-based Reinforcement Learning: A Survey.](https://arxiv.org/pdf/2006.16712.pdf)
+[Tutorial on Model-Based Methods in Reinforcement Learning](https://sites.google.com/view/mbrl-tutorial)
 """
 @api abstract type AbstractEnvironmentModel end

@@ -54,21 +54,6 @@ end
 
 get_reward(obs::RewardOverriddenObs) = obs.reward
 
-#####
-# BatchObs
-#####
-
-"""
-    BatchObs(obs::Vector)
-
-Wrap several observations into a batch.
-"""
-struct BatchObs{O}
-    obs::Vector{O}
-end
-
-@forward BatchObs.obs Base.getindex, Base.length, Base.setindex!, Base.iterate
-
 get_terminal(obs::BatchObs) = [get_terminal(x) for x in obs]
 get_reward(obs::BatchObs) = [get_reward(x) for x in obs]
 

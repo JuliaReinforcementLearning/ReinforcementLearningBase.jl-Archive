@@ -10,10 +10,13 @@ import Base.Threads.@spawn
 # SubjectiveEnv
 #####
 
-Base.@kwdef struct SubjectiveEnv{E<:AbstractEnv,P}
+Base.@kwdef struct SubjectiveEnv{E<:AbstractEnv,P} <: AbstractEnv
     env::E
     player::P
 end
+
+# partial constructor to allow chaining
+SubjectiveEnv(player) = env -> SubjectiveEnv(env, player)
 
 for f in ENV_API
     @eval $f(x::SubjectiveEnv, args...;kwargs...) = $f(x.env, args...;kwargs...)
@@ -24,69 +27,62 @@ for f in MULTI_AGENT_ENV_API
 end
 
 #####
-# WrappedEnv
+# StateOverriddenEnv
 #####
 
-"""
-    WrappedEnv(;preprocessor=identity, env, postprocessor=identity)
-
-The observation of the inner `env` is first transformed by the `preprocessor`.
-And the action is transformed by `postprocessor` and then send to the inner `env`.
-"""
-Base.@kwdef struct WrappedEnv{P,E<:AbstractEnv,T} <: AbstractEnv
-    preprocessor::P = identity
+Base.@kwdef struct StateOverriddenEnv{P, E<:AbstractEnv} <: AbstractEnv
+    processors::P
     env::E
-    postprocessor::T = identity
 end
 
-(env::WrappedEnv)(args...) = env.env(env.postprocessor(args)...)
+# partial constructor to allow chaining
+StateOverriddenEnv(processors...) = env -> StateOverriddenEnv(processors, env)
 
 for f in vcat(ENV_API, MULTI_AGENT_ENV_API)
-    if f != :observe
-        @eval $f(x::WrappedEnv, args...;kwargs...) = $f(x.env, args...;kwargs...)
+    if f != :get_state
+        @eval $f(x::StateOverriddenEnv, args...;kwargs...) = $f(x.env, args...;kwargs...)
     end
 end
 
-observe(env::WrappedEnv, player) = env.preprocessor(observe(env.env, player))
-observe(env::WrappedEnv) = env.preprocessor(observe(env.env))
+get_state(env::StateOverriddenEnv, args...) = reduce((x,f)->f(x), env.processors; init=get_state(env.env, args...))
 
 #####
-## Preprocessors
+# RewardOverriddenEnv
 #####
 
-abstract type AbstractPreprocessor end
-
-"""
-    (p::AbstractPreprocessor)(obs)
-
-By default a [`StateOverriddenObs`](@ref) is returned to avoid modifying original observation.
-"""
-(p::AbstractPreprocessor)(obs) = StateOverriddenObs(obs = obs, state = p(get_state(obs)))
-
-"""
-    ComposedPreprocessor(p::AbstractPreprocessor...)
-
-Compose multiple preprocessors.
-"""
-struct ComposedPreprocessor{T} <: AbstractPreprocessor
-    preprocessors::T
+Base.@kwdef struct RewardOverriddenEnv{P, E<:AbstractEnv} <: AbstractEnv
+    processors::P
+    env::E
 end
 
-ComposedPreprocessor(p...) = ComposedPreprocessor(p)
-(p::ComposedPreprocessor)(obs) = reduce((x, f) -> f(x), p.preprocessors, init = obs)
+# partial constructor to allow chaining
+RewardOverriddenEnv(processors...) = env -> RewardOverriddenEnv(processors, env)
+
+for f in vcat(ENV_API, MULTI_AGENT_ENV_API)
+    if f != :get_reward
+        @eval $f(x::RewardOverriddenEnv, args...;kwargs...) = $f(x.env, args...;kwargs...)
+    end
+end
+
+get_reward(env::RewardOverriddenEnv, args...) = reduce((x,f)->f(x), env.processors; init=get_reward(env.env, args...))
 
 #####
-# CloneStatePreprocessor
+# ActionTransformedEnv
 #####
 
-"""
-    CloneStatePreprocessor()
+Base.@kwdef struct ActionTransformedEnv{P, E<:AbstractEnv} <: AbstractEnv
+    processors::P
+    env::E
+end
 
-Do `deepcopy` for the state in an observation.
-"""
-struct CloneStatePreprocessor <: AbstractPreprocessor end
+# partial constructor to allow chaining
+ActionTransformedEnv(processors...) = env -> ActionTransformedEnv(processors, env)
 
-(p::CloneStatePreprocessor)(obs) = StateOverriddenObs(obs, deepcopy(get_state(obs)))
+for f in vcat(ENV_API, MULTI_AGENT_ENV_API)
+    @eval $f(x::ActionTransformedEnv, args...;kwargs...) = $f(x.env, args...;kwargs...)
+end
+
+(env::ActionTransformedEnv)(action, args...) = env.env(reduce((x,f)->f(x), env.processors;init=action), args...)
 
 #####
 # MultiThreadEnv
@@ -95,49 +91,51 @@ struct CloneStatePreprocessor <: AbstractPreprocessor end
 """
     MultiThreadEnv(envs::Vector{<:AbstractEnv})
 
-Wrap multiple environments in one environment.
+Wrap multiple environments into one environment.
 Each environment will run in parallel by leveraging `Threads.@spawn`.
+So remember to set the environment variable `JULIA_NUM_THREADS`!
 """
-struct MultiThreadEnv{O,E} <: AbstractEnv
-    obs::BatchObs{O}
+struct MultiThreadEnv{E} <: AbstractEnv
     envs::Vector{E}
 end
 
-MultiThreadEnv(envs) = MultiThreadEnv(BatchObs([observe(env) for env in envs]), envs)
+MultiThreadEnv(f, n) = MultiThreadEnv([f() for _ in 1:n])
+
+@forward MultiThreadEnv.envs Base.getindex, Base.length, Base.setindex!
 
 function (env::MultiThreadEnv)(actions)
     @sync for i in 1:length(env)
         @spawn begin
             env[i](actions[i])
-            env.obs[i] = observe(env.envs[i])
         end
     end
 end
 
-observe(env::MultiThreadEnv) = env.obs
-
 function reset!(env::MultiThreadEnv; is_force = false)
     if is_force
         for i in 1:length(env)
-            reset!(env.envs[i])
+            reset!(env[i])
         end
     else
         @sync for i in 1:length(env)
-            if get_terminal(env.obs[i])
+            if get_terminal(env[i])
                 @spawn begin
-                    reset!(env.envs[i])
-                    env.obs[i] = observe(env.envs[i])
+                    reset!(env[i])
                 end
             end
         end
     end
 end
 
-@forward MultiThreadEnv.envs Base.getindex, Base.length, Base.setindex!
+for f in (:get_state, :get_terminal, :get_reward, :get_legal_actions, :get_legal_actions_mask, :get_current_player)
+    @eval $f(env::MultiThreadEnv, args...;kwargs...) = [$f(x, args...;kwargs...) for x in env]
+end
 
 # !!! some might not be meaningful, use with caution.
+#=
 for f in vcat(ENV_API, MULTI_AGENT_ENV_API)
     if f != :reset
         @eval $f(x::MultiThreadEnv, args...;kwargs...) = $f(x.envs[1], args...;kwargs...)
     end
 end
+=#
