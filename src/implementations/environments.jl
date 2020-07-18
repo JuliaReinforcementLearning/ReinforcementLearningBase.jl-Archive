@@ -1,4 +1,4 @@
-export WrappedEnv, SubjectiveEnv, MultiThreadEnv,
+export WrappedEnv, SubjectiveEnv, MultiThreadEnv, StateOverriddenEnv, RewardOverriddenEnv, ActionTransformedEnv,
     AbstractPreprocessor, CloneStatePreprocessor, ComposedPreprocessor
 
 using MacroTools: @forward
@@ -10,7 +10,7 @@ import Base.Threads.@spawn
 # SubjectiveEnv
 #####
 
-Base.@kwdef struct SubjectiveEnv{E<:AbstractEnv,P} <: AbstractEnv
+struct SubjectiveEnv{E<:AbstractEnv,P} <: AbstractEnv
     env::E
     player::P
 end
@@ -30,13 +30,13 @@ end
 # StateOverriddenEnv
 #####
 
-Base.@kwdef struct StateOverriddenEnv{P, E<:AbstractEnv} <: AbstractEnv
+struct StateOverriddenEnv{P, E<:AbstractEnv} <: AbstractEnv
     processors::P
     env::E
 end
 
 # partial constructor to allow chaining
-StateOverriddenEnv(processors...) = env -> StateOverriddenEnv(processors, env)
+StateOverriddenEnv(;processors...) = env -> StateOverriddenEnv(processors, env)
 
 for f in vcat(ENV_API, MULTI_AGENT_ENV_API)
     if f != :get_state
@@ -50,13 +50,13 @@ get_state(env::StateOverriddenEnv, args...) = reduce((x,f)->f(x), env.processors
 # RewardOverriddenEnv
 #####
 
-Base.@kwdef struct RewardOverriddenEnv{P, E<:AbstractEnv} <: AbstractEnv
+struct RewardOverriddenEnv{P, E<:AbstractEnv} <: AbstractEnv
     processors::P
     env::E
 end
 
 # partial constructor to allow chaining
-RewardOverriddenEnv(processors...) = env -> RewardOverriddenEnv(processors, env)
+RewardOverriddenEnv(;processors...) = env -> RewardOverriddenEnv(processors, env)
 
 for f in vcat(ENV_API, MULTI_AGENT_ENV_API)
     if f != :get_reward
@@ -70,13 +70,13 @@ get_reward(env::RewardOverriddenEnv, args...) = reduce((x,f)->f(x), env.processo
 # ActionTransformedEnv
 #####
 
-Base.@kwdef struct ActionTransformedEnv{P, E<:AbstractEnv} <: AbstractEnv
+struct ActionTransformedEnv{P, E<:AbstractEnv} <: AbstractEnv
     processors::P
     env::E
 end
 
 # partial constructor to allow chaining
-ActionTransformedEnv(processors...) = env -> ActionTransformedEnv(processors, env)
+ActionTransformedEnv(;processors...) = env -> ActionTransformedEnv(processors, env)
 
 for f in vcat(ENV_API, MULTI_AGENT_ENV_API)
     @eval $f(x::ActionTransformedEnv, args...;kwargs...) = $f(x.env, args...;kwargs...)
