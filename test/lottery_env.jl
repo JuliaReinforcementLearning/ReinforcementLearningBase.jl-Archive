@@ -15,16 +15,17 @@ Assume you have \$10 in your pocket, and you are faced with the following three 
 2. buy a MegaHaul lottery ticket (win \$1M w.p. 0.05; nothing otherwise);
 3. do not buy a lottery ticket.
 """
-mutable struct LotteryEnv <: AbstractEnv
+mutable struct LotteryEnv{R<:AbstractRNG} <: AbstractEnv
     reward::Int
     terminal::Bool
-    rng::MersenneTwister
+    rng::R
 end
 
-LotteryEnv(; seed = nothing) = LotteryEnv(0, false, MersenneTwister(seed))
+LotteryEnv() = LotteryEnv(0, false, Random.GLOBAL_RNG)
 
 RLBase.get_actions(env::LotteryEnv) = (:PowerRich, :MegaHaul, nothing)
 RLBase.get_state(env::LotteryEnv) = env.terminal ? 2 : 1
+Random.seed!(env::LotteryEnv, seed) = Random.seed!(env.rng, seed)
 
 function (env::LotteryEnv)(action::Union{Symbol,Nothing})
     if action == :PowerRich

@@ -127,14 +127,27 @@ function reset!(env::MultiThreadEnv; is_force = false)
     end
 end
 
-for f in (:get_state, :get_terminal, :get_reward, :get_legal_actions, :get_legal_actions_mask, :get_current_player)
-    @eval $f(env::MultiThreadEnv, args...;kwargs...) = [$f(x, args...;kwargs...) for x in env]
+const MULTI_THREAD_ENV_CACHE = IdDict{AbstractEnv,Dict{Symbol,Array}}()
+
+# TODO:using https://github.com/oxinabox/AutoPreallocation.jl ?
+for f in (:get_state, :get_terminal, :get_reward, :get_legal_actions, :get_legal_actions_mask)
+    @eval function $f(env::MultiThreadEnv, args...;kwargs...)
+        sample = $f(env[1], args...;kwargs...)
+        m, n = length(sample), length(env)
+        env_cache = get!(MULTI_THREAD_ENV_CACHE, env, Dict{Symbol, Array}())
+        cache = get!(env_cache, Symbol($f, args, kwargs), Array{eltype(sample)}(undef, size(sample)..., n))
+        selectdim(cache, ndims(cache), 1) .= sample
+        for i in 2:n
+            selectdim(cache, ndims(cache), i) .= $f(env[i], args...;kwargs...)
+        end
+        cache
+    end
 end
 
 # !!! some might not be meaningful, use with caution.
 #=
 for f in vcat(ENV_API, MULTI_AGENT_ENV_API)
-    if f != :reset
+    if f ∉ (:get_state, :get_terminal, :get_reward, :get_legal_actions, :get_legal_actions_mask)
         @eval $f(x::MultiThreadEnv, args...;kwargs...) = $f(x.envs[1], args...;kwargs...)
     end
 end

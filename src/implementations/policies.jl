@@ -3,7 +3,7 @@ export RandomPolicy
 using Random
 
 """
-    RandomPolicy(action_space, rng)
+    RandomPolicy(action_space, rng=Random.GLOBAL_RNG)
 
 Construct a random policy with actions in `action_space`.
 If `action_space` is `nothing` then the `legal_actions` at runtime
@@ -14,39 +14,22 @@ struct RandomPolicy{S,R<:AbstractRNG} <: AbstractPolicy
     rng::R
 end
 
-Base.show(io::IO, p::RandomPolicy) = print(io, "RandomPolicy($(p.action_space))")
-
 Random.seed!(p::RandomPolicy, seed) = Random.seed!(p.rng, seed)
 
-"""
-    RandomPolicy(;seed=nothing)
-
-Randomly choose an action from `get_legal_actions(env)` at runtime.
-"""
-RandomPolicy(; seed = nothing) = RandomPolicy(nothing;seed=seed)
+RandomPolicy(; rng = Random.GLOBAL_RNG) = RandomPolicy(nothing, rng)
+RandomPolicy(s; rng=Random.GLOBAL_RNG) = RandomPolicy(s, rng)
 
 """
-    RandomPolicy(action_space; seed=nothing)
-
-Randomly select an action from `action_space` everytime.
-"""
-RandomPolicy(s; seed = nothing) = RandomPolicy(s, MersenneTwister(seed))
-
-"""
-    RandomPolicy(env::AbstractEnv; seed=nothing)
+    RandomPolicy(env::AbstractEnv; rng=Random.GLOBAL_RNG)
 
 If `env` is of [`FULL_ACTION_SET`](@ref), then action is randomly chosen at runtime
 in `get_actions(env)`. Otherwise, the `env` is supposed to be of [`MINIMAL_ACTION_SET`](@ref).
 The `get_actions(env)` is supposed to be static and will only be used to initialize
 the random policy for once.
 """
-function RandomPolicy(env::AbstractEnv; seed = nothing)
-    if ActionStyle(env) === MINIMAL_ACTION_SET
-        RandomPolicy(get_actions(env); seed=seed)
-    elseif ActionStyle(env) === FULL_ACTION_SET
-        RandomPolicy(nothing; seed=seed)
-    end
-end
+RandomPolicy(env::AbstractEnv; rng=Random.GLOBAL_RNG) = RandomPolicy(ActionStyle(env), env, rng)
+RandomPolicy(::MinimalActionSet, env::AbstractEnv, rng) = RandomPolicy(get_actions(env), rng)
+RandomPolicy(::FullActionSet, env::AbstractEnv, rng) = RandomPolicy(nothing, rng)
 
 (p::RandomPolicy{Nothing})(env) = rand(p.rng, get_legal_actions(env))
 (p::RandomPolicy)(env) = rand(p.rng, p.action_space)
@@ -71,8 +54,8 @@ get_prob(p::RandomPolicy, env, a) = 1 / length(p.action_space)
 function get_prob(p::RandomPolicy{Nothing}, env, a)
     legal_actions = get_legal_actions(env)
     if a in legal_actions
-        1 / length(legal_actions)
+        1. / length(legal_actions)
     else
-        0
+        0.
     end
 end
