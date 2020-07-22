@@ -1,5 +1,4 @@
-export WrappedEnv, SubjectiveEnv, MultiThreadEnv, StateOverriddenEnv, RewardOverriddenEnv, ActionTransformedEnv,
-    AbstractPreprocessor, CloneStatePreprocessor, ComposedPreprocessor
+export SubjectiveEnv, MultiThreadEnv, StateOverriddenEnv, RewardOverriddenEnv, ActionTransformedEnv
 
 using MacroTools: @forward
 using Random
@@ -14,6 +13,8 @@ struct SubjectiveEnv{E<:AbstractEnv,P} <: AbstractEnv
     env::E
     player::P
 end
+
+(env::SubjectiveEnv)(action) = env.env(action, env.player)
 
 # partial constructor to allow chaining
 SubjectiveEnv(player) = env -> SubjectiveEnv(env, player)
@@ -35,8 +36,10 @@ struct StateOverriddenEnv{P, E<:AbstractEnv} <: AbstractEnv
     env::E
 end
 
+(env::StateOverriddenEnv)(args...) = env.env(args...)
+
 # partial constructor to allow chaining
-StateOverriddenEnv(;processors...) = env -> StateOverriddenEnv(processors, env)
+StateOverriddenEnv(processors...) = env -> StateOverriddenEnv(processors, env)
 
 for f in vcat(ENV_API, MULTI_AGENT_ENV_API)
     if f != :get_state
@@ -55,8 +58,10 @@ struct RewardOverriddenEnv{P, E<:AbstractEnv} <: AbstractEnv
     env::E
 end
 
+(env::RewardOverriddenEnv)(args...) = env.env(args...)
+
 # partial constructor to allow chaining
-RewardOverriddenEnv(;processors...) = env -> RewardOverriddenEnv(processors, env)
+RewardOverriddenEnv(processors...) = env -> RewardOverriddenEnv(processors, env)
 
 for f in vcat(ENV_API, MULTI_AGENT_ENV_API)
     if f != :get_reward
@@ -75,8 +80,10 @@ struct ActionTransformedEnv{P, E<:AbstractEnv} <: AbstractEnv
     env::E
 end
 
+(env::ActionTransformedEnv)(args...) = env.env(args...)
+
 # partial constructor to allow chaining
-ActionTransformedEnv(;processors...) = env -> ActionTransformedEnv(processors, env)
+ActionTransformedEnv(processors...) = env -> ActionTransformedEnv(processors, env)
 
 for f in vcat(ENV_API, MULTI_AGENT_ENV_API)
     @eval $f(x::ActionTransformedEnv, args...;kwargs...) = $f(x.env, args...;kwargs...)
@@ -152,3 +159,5 @@ for f in vcat(ENV_API, MULTI_AGENT_ENV_API)
     end
 end
 =#
+
+Base.summary(io::IO, env::T) where T<:Union{SubjectiveEnv, MultiThreadEnv, StateOverriddenEnv, RewardOverriddenEnv, ActionTransformedEnv} = print(io, T.name)
