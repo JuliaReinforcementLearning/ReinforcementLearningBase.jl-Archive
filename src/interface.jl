@@ -9,7 +9,7 @@ Julia. From the concept level, they can be organized in the following parts:
   - [Traits for Environment](@ref)
 """ RLBase
 
-import Base: copy, copy!, length, in, eltype
+import Base: copy, copyto!, length, in, eltype
 import Random: seed!, rand, AbstractRNG
 import AbstractTrees: children, has_children
 import Markdown
