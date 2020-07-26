@@ -47,7 +47,7 @@ for f in vcat(ENV_API, MULTI_AGENT_ENV_API)
     end
 end
 
-get_state(env::StateOverriddenEnv, args...) = reduce((x,f)->f(x), env.processors; init=get_state(env.env, args...))
+get_state(env::StateOverriddenEnv, args...) = foldl(|>, env.processors; init=get_state(env.env, args...))
 
 #####
 # RewardOverriddenEnv
@@ -69,7 +69,7 @@ for f in vcat(ENV_API, MULTI_AGENT_ENV_API)
     end
 end
 
-get_reward(env::RewardOverriddenEnv, args...) = reduce((x,f)->f(x), env.processors; init=get_reward(env.env, args...))
+get_reward(env::RewardOverriddenEnv, args...) = foldl(|>, env.processors; init=get_reward(env.env, args...))
 
 #####
 # ActionTransformedEnv
@@ -89,7 +89,7 @@ for f in vcat(ENV_API, MULTI_AGENT_ENV_API)
     @eval $f(x::ActionTransformedEnv, args...;kwargs...) = $f(x.env, args...;kwargs...)
 end
 
-(env::ActionTransformedEnv)(action, args...) = env.env(reduce((x,f)->f(x), env.processors;init=action), args...)
+(env::ActionTransformedEnv)(action, args...) = env.env(foldl(|>, env.processors;init=action), args...)
 
 #####
 # MultiThreadEnv
