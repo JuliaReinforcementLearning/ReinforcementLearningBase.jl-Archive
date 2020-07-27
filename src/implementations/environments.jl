@@ -1,4 +1,4 @@
-export SubjectiveEnv, MultiThreadEnv, StateOverriddenEnv, RewardOverriddenEnv, ActionTransformedEnv
+export SubjectiveEnv, MultiThreadEnv, StateOverriddenEnv, RewardOverriddenEnv, ActionTransformedEnv, StateCachedEnv
 
 using MacroTools: @forward
 using Random
@@ -48,6 +48,42 @@ for f in vcat(ENV_API, MULTI_AGENT_ENV_API)
 end
 
 get_state(env::StateOverriddenEnv, args...) = foldl(|>, env.processors; init=get_state(env.env, args...))
+
+#####
+# StateCachedEnv
+#####
+
+"""
+Cache the state so that `get_state(env)` will always return the same result before the next interaction with `env`.
+"""
+mutable struct StateCachedEnv{S,E<:AbstractEnv} <: AbstractEnv
+    s::S
+    env::E
+    is_state_cached::Bool
+end
+
+StateCachedEnv(env) = StateCachedEnv(get_state(env), env, true)
+
+function (env::StateCachedEnv)(args...)
+    env.env(args...)
+    env.is_state_cached = false
+end
+
+function get_state(env::StateCachedEnv)
+    if env.is_state_cached
+        env.s
+    else
+        env.s = get_state(env.env)
+        env.is_state_cached = true
+        env.s
+    end
+end
+
+for f in vcat(ENV_API, MULTI_AGENT_ENV_API)
+    if f != :get_state
+        @eval $f(x::StateCachedEnv, args...;kwargs...) = $f(x.env, args...;kwargs...)
+    end
+end
 
 #####
 # RewardOverriddenEnv
