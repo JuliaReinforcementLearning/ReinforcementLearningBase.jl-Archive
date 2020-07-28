@@ -187,6 +187,40 @@ for f in (:get_state, :get_terminal, :get_reward, :get_legal_actions, :get_legal
     end
 end
 
+get_actions(env::MultiThreadEnv) = TupleSpace(Tuple(get_actions(x) for x in env.envs))
+get_current_player(env::MultiThreadEnv) = [get_current_player(x) for x in env.envs]
+
+function Base.show(io::IO, t::MIME"text/markdown", env::MultiThreadEnv)
+    show(io, t, Markdown.parse("""
+    # MultiThreadEnv
+
+    ## Num of threads
+
+    $(Threads.nthreads())
+
+    ## Num of inner environments
+
+    $(length(env.envs)) replicates of `$(get_name(env.envs[1]))`
+
+    ## Traits of inner environment
+    | Trait Type | Value |
+    |:---------- | ----- |
+    $(join(["|$(string(f))|$(f(env))|" for f in get_env_traits()], "\n"))
+
+    ## Actions of inner environment
+    $(get_actions(env[1]))
+
+    ## Players
+    $(join(["- `$p`" for p in get_players(env.envs[1])], "\n"))
+
+    ## Current Player
+    $(join(["`$x`" for x in get_current_player(env)], ","))
+
+    ## Is Environment Terminated?
+    $(get_terminal(env))
+    """))
+end
+
 # !!! some might not be meaningful, use with caution.
 #=
 for f in vcat(ENV_API, MULTI_AGENT_ENV_API)

@@ -46,13 +46,13 @@ function Base.show(io::IO, t::MIME"text/markdown", env::AbstractEnv)
     $(join(["|$(string(f))|$(f(env))|" for f in get_env_traits()], "\n"))
 
     ## Actions
-    $(join(["- $a" for a in get_actions(env)], "\n"))
+    $(get_actions(env))
 
     ## Players
-    $(join(["- $p" for p in get_players(env)], "\n"))
+    $(join(["- `$p`" for p in get_players(env)], "\n"))
 
     ## Current Player
-    $(get_current_player(env))
+    `$(get_current_player(env))`
 
     ## Is Environment Terminated?
     $(get_terminal(env) ? "Yes" : "No")
