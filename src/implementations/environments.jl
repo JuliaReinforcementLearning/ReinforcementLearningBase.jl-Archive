@@ -116,8 +116,6 @@ struct ActionTransformedEnv{P, E<:AbstractEnv} <: AbstractEnv
     env::E
 end
 
-(env::ActionTransformedEnv)(args...) = env.env(args...)
-
 # partial constructor to allow chaining
 ActionTransformedEnv(processors...) = env -> ActionTransformedEnv(processors, env)
 
