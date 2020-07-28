@@ -67,6 +67,8 @@ Super type of all reinforcement learning environments.
 """
 @api abstract type AbstractEnv end
 
+abstract type AbstractEnvStyle end
+
 #####
 ## Traits for Environment
 ## mostly borrowed from https://github.com/deepmind/open_spiel/blob/master/open_spiel/spiel.h
@@ -76,7 +78,7 @@ Super type of all reinforcement learning environments.
 ### NumAgentStyle
 #####
 
-abstract type AbstractNumAgentStyle end
+abstract type AbstractNumAgentStyle <: AbstractEnvStyle end
 
 @api struct SingleAgent <: AbstractNumAgentStyle end
 @api const SINGLE_AGENT = SingleAgent()
@@ -104,7 +106,7 @@ end
 ### DynamicStyle
 #####
 
-abstract type AbstractDynamicStyle end
+abstract type AbstractDynamicStyle <: AbstractEnvStyle end
 
 @api struct Sequential <: AbstractDynamicStyle end
 @api struct Simultaneous <: AbstractDynamicStyle end
@@ -126,7 +128,7 @@ Determine whether the players can play simultaneously or not. Default value is [
 ### InformationStyle
 #####
 
-abstract type AbstractInformationStyle end
+abstract type AbstractInformationStyle <: AbstractEnvStyle end
 
 @api struct PerfectInformation <: AbstractInformationStyle end
 @api struct ImperfectInformation <: AbstractInformationStyle end
@@ -149,11 +151,11 @@ Return [PERFECT_INFORMATION](@ref) by default.
 ### ChanceStyle
 #####
 
-abstract type AbstractChanceStyle end
-abstract type AbstractStochasticChanceStyle end
+abstract type AbstractChanceStyle <: AbstractEnvStyle end
+abstract type AbstractStochasticChanceStyle <: AbstractChanceStyle end
 
 @api struct Deterministic <: AbstractChanceStyle end
-@api struct Stochastic <: AbstractChanceStyle end
+@api struct Stochastic <: AbstractStochasticChanceStyle end
 @api struct ExplicitStochastic <: AbstractStochasticChanceStyle end
 @api struct SampledStochastic <: AbstractStochasticChanceStyle end
 
@@ -181,7 +183,7 @@ Usually only a dummy action is allowed in this case.
 ### RewardStyle
 #####
 
-abstract type AbstractRewardStyle end
+abstract type AbstractRewardStyle <: AbstractEnvStyle end
 
 @api struct StepReward <: AbstractRewardStyle end
 @api struct TerminalReward <: AbstractRewardStyle end
@@ -199,7 +201,7 @@ abstract type AbstractRewardStyle end
 ### UtilityStyle
 #####
 
-abstract type AbstractUtilityStyle end
+abstract type AbstractUtilityStyle <: AbstractEnvStyle end
 
 @api struct ZeroSum <: AbstractUtilityStyle end
 @api struct ConstantSum <: AbstractUtilityStyle end
@@ -235,7 +237,7 @@ Possible values are:
 ### ActionStyle
 #####
 
-abstract type AbstractActionStyle end
+abstract type AbstractActionStyle <: AbstractEnvStyle end
 @api struct FullActionSet <: AbstractActionStyle end
 
 "The action space of the environment may contains illegal actions"

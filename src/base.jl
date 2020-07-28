@@ -3,16 +3,16 @@
 
 Run the policy `π` in `env` until the end.
 """
-Base.run(π, env::AbstractEnv) = run(π, env, DynamicStyle(env), NumAgentStyle(env))
+Base.run(π, env::AbstractEnv) = run(DynamicStyle(env), NumAgentStyle(env), π, env)
 
-function Base.run(π, env::AbstractEnv, ::Sequential, ::SingleAgent)
+function Base.run(::Sequential, ::SingleAgent, π, env::AbstractEnv)
     while !get_terminal(env)
         action = π(env)
         env(action)
     end
 end
 
-function Base.run(Π, env::AbstractEnv, ::Sequential, ::MultiAgent)
+function Base.run(::Sequential, ::MultiAgent, Π, env::AbstractEnv)
     is_terminal = false
     while !is_terminal
         for π in Π
@@ -30,25 +30,33 @@ end
 # printing
 #####
 
-function Base.convert(::Type{Markdown.MD}, env::AbstractEnv)
-    Markdown.parse("""
+function get_env_traits()
+    [eval(x) for x in RLBase.ENV_API if endswith(String(x), "Style")]
+end
+
+Base.show(io::IO, t::MIME"text/plain", env::AbstractEnv) = show(io, MIME"text/markdown"(), env)
+
+function Base.show(io::IO, t::MIME"text/markdown", env::AbstractEnv)
+    show(io, t, Markdown.parse("""
     # $(get_name(env))
+
     ## Traits
     | Trait Type | Value |
     |:---------- | ----- |
-    | NumAgentStyle | $(NumAgentStyle(env)) |
-    | ActionStyle | $(ActionStyle(env)) |
-    | DynamicStyle | $(DynamicStyle(env)) |
-    | ChanceStyle | $(ChanceStyle(env)) |
-    | InformationStyle | $(InformationStyle(env)) |
-    | RewardStyle | $(RewardStyle(env)) |
-    | UtilityStyle | $(UtilityStyle(env)) |
-    ## Current state
-    $(get_state(env))
-    """)
+    $(join(["|$(string(f))|$(f(env))|" for f in get_env_traits()], "\n"))
+
+    ## Actions
+    $(join(["- $a" for a in get_actions(env)], "\n"))
+
+    ## Players
+    $(join(["- $p" for p in get_players(env)], "\n"))
+
+    ## Current Player
+    $(get_current_player(env))
+
+    ## Is Environment Terminated?
+    $(get_terminal(env) ? "Yes" : "No")
+    """))
 end
 
-Base.show(io::IO, env::AbstractEnv) = show(io, convert(Markdown.MD, env))
-Base.show(io::IO, t::MIME"text/plain", env::AbstractEnv) = show(io, t, convert(Markdown.MD, env))
-
-Base.summary(io::IO, env::AbstractEnv) = print(io, "$(get_name(env)): $(NumAgentStyle(env)) $(ActionStyle(env)) $(DynamicStyle(env)) $(ChanceStyle(env)) $(InformationStyle(env)) $(RewardStyle(env)) $(UtilityStyle(env))")
+Base.summary(io::IO, env::AbstractEnv) = print(io, "$(get_name(env)): $(join([f(env) for f in get_env_traits()], ","))")
