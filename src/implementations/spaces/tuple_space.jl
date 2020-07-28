@@ -1,6 +1,6 @@
 export TupleSpace
 
-struct TupleSpace{T<:Tuple} <: AbstractSpace
+struct TupleSpace{T} <: AbstractSpace
     data::T
 end
 

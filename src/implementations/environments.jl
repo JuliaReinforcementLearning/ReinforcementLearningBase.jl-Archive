@@ -24,7 +24,7 @@ for f in ENV_API
 end
 
 for f in MULTI_AGENT_ENV_API
-    @eval $f(x::SubjectiveEnv, args..;kwargs...) = $f(x.env, x.player, args...;kwargs...)
+    @eval $f(x::SubjectiveEnv, args...;kwargs...) = $f(x.env, x.player, args...;kwargs...)
 end
 
 #####
@@ -185,7 +185,7 @@ for f in (:get_state, :get_terminal, :get_reward, :get_legal_actions, :get_legal
     end
 end
 
-get_actions(env::MultiThreadEnv, args...;kwargs...) = TupleSpace(Tuple(get_actions(x, args...;kwargs...) for x in env.envs))
+get_actions(env::MultiThreadEnv, args...;kwargs...) = TupleSpace([get_actions(x, args...;kwargs...) for x in env.envs])
 get_current_player(env::MultiThreadEnv) = [get_current_player(x) for x in env.envs]
 
 function Base.show(io::IO, t::MIME"text/markdown", env::MultiThreadEnv)
