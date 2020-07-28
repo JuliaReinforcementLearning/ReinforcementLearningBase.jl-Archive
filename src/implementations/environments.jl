@@ -14,7 +14,7 @@ struct SubjectiveEnv{E<:AbstractEnv,P} <: AbstractEnv
     player::P
 end
 
-(env::SubjectiveEnv)(action) = env.env(action, env.player)
+(env::SubjectiveEnv)(action;kwargs...) = env.env(action, env.player;kwargs...)
 
 # partial constructor to allow chaining
 SubjectiveEnv(player) = env -> SubjectiveEnv(env, player)
@@ -24,7 +24,7 @@ for f in ENV_API
 end
 
 for f in MULTI_AGENT_ENV_API
-    @eval $f(x::SubjectiveEnv) = $f(x.env, x.player)
+    @eval $f(x::SubjectiveEnv, args..;kwargs...) = $f(x.env, x.player, args...;kwargs...)
 end
 
 #####
@@ -36,7 +36,7 @@ struct StateOverriddenEnv{P, E<:AbstractEnv} <: AbstractEnv
     env::E
 end
 
-(env::StateOverriddenEnv)(args...) = env.env(args...)
+(env::StateOverriddenEnv)(args...;kwargs...) = env.env(args...;kwargs...)
 
 # partial constructor to allow chaining
 StateOverriddenEnv(processors...) = env -> StateOverriddenEnv(processors, env)
@@ -47,7 +47,7 @@ for f in vcat(ENV_API, MULTI_AGENT_ENV_API)
     end
 end
 
-get_state(env::StateOverriddenEnv, args...) = foldl(|>, env.processors; init=get_state(env.env, args...))
+get_state(env::StateOverriddenEnv, args...;kwargs...) = foldl(|>, env.processors; init=get_state(env.env, args...;kwargs...))
 
 #####
 # StateCachedEnv
@@ -64,16 +64,16 @@ end
 
 StateCachedEnv(env) = StateCachedEnv(get_state(env), env, true)
 
-function (env::StateCachedEnv)(args...)
-    env.env(args...)
+function (env::StateCachedEnv)(args...;kwargs...)
+    env.env(args...;kwargs...)
     env.is_state_cached = false
 end
 
-function get_state(env::StateCachedEnv)
+function get_state(env::StateCachedEnv, args...;kwargs...)
     if env.is_state_cached
         env.s
     else
-        env.s = get_state(env.env)
+        env.s = get_state(env.env, args...; kwargs...)
         env.is_state_cached = true
         env.s
     end
@@ -94,7 +94,7 @@ struct RewardOverriddenEnv{P, E<:AbstractEnv} <: AbstractEnv
     env::E
 end
 
-(env::RewardOverriddenEnv)(args...) = env.env(args...)
+(env::RewardOverriddenEnv)(args...;kwargs...) = env.env(args...;kwargs...)
 
 # partial constructor to allow chaining
 RewardOverriddenEnv(processors...) = env -> RewardOverriddenEnv(processors, env)
@@ -105,7 +105,7 @@ for f in vcat(ENV_API, MULTI_AGENT_ENV_API)
     end
 end
 
-get_reward(env::RewardOverriddenEnv, args...) = foldl(|>, env.processors; init=get_reward(env.env, args...))
+get_reward(env::RewardOverriddenEnv, args...;kwargs...) = foldl(|>, env.processors; init=get_reward(env.env, args...;kwargs...))
 
 #####
 # ActionTransformedEnv
@@ -123,7 +123,7 @@ for f in vcat(ENV_API, MULTI_AGENT_ENV_API)
     @eval $f(x::ActionTransformedEnv, args...;kwargs...) = $f(x.env, args...;kwargs...)
 end
 
-(env::ActionTransformedEnv)(action, args...) = env.env(foldl(|>, env.processors;init=action), args...)
+(env::ActionTransformedEnv)(action, args...;kwargs...) = env.env(foldl(|>, env.processors;init=action), args...;kwargs...)
 
 #####
 # MultiThreadEnv
@@ -185,7 +185,7 @@ for f in (:get_state, :get_terminal, :get_reward, :get_legal_actions, :get_legal
     end
 end
 
-get_actions(env::MultiThreadEnv) = TupleSpace(Tuple(get_actions(x) for x in env.envs))
+get_actions(env::MultiThreadEnv, args...;kwargs...) = TupleSpace(Tuple(get_actions(x, args...;kwargs...) for x in env.envs))
 get_current_player(env::MultiThreadEnv) = [get_current_player(x) for x in env.envs]
 
 function Base.show(io::IO, t::MIME"text/markdown", env::MultiThreadEnv)
