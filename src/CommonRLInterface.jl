@@ -15,8 +15,8 @@ Base.convert(::Type{CRL.AbstractEnv}, env::AbstractEnv) = convert(CommonRLEnv, e
 function Base.convert(::Type{CommonRLEnv}, env::AbstractEnv)
     new_env = CommonRLEnv(env)
     if ActionStyle(env) === FullActionSet()
-        @eval CRL.@provide CRL.valid_actions(x::typeof(new_env)) = get_legal_actions(new_env.env)
-        @eval CRL.@provide CRL.valid_action_mask(env::CommonRLEnv) = get_legal_actions_mask(env.env)
+        @eval CRL.@provide CRL.valid_actions(x::typeof($new_env)) = get_legal_actions(x.env)
+        @eval CRL.@provide CRL.valid_action_mask(env::typeof($new_env)) = get_legal_actions_mask(env.env)
     end
     new_env
 end
