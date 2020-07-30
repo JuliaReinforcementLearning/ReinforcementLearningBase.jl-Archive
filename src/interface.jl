@@ -300,7 +300,7 @@ Required for environments of [`FULL_ACTION_SET`](@ref).
 
 The state can be of any type. However, most neural network based algorithms assume it's an `AbstractArray`.
 For environments with many different states provided (inner state, information state, etc),
-users need to provide `t::Type` to declare with kind of state they want.
+users need to provide `t::Type` to declare which kind of state they want.
 """
 @multi_agent_env_api get_state(env::AbstractEnv, player=get_current_player(env))
 
