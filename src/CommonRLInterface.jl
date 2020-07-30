@@ -10,30 +10,47 @@ struct CommonRLEnv{T<:AbstractEnv} <: CRL.AbstractEnv
     env::T
 end
 
-Base.convert(::Type{CRL.AbstractEnv}, env::AbstractEnv) = convert(CommonRLEnv, env)
-
-function Base.convert(::Type{CommonRLEnv}, env::AbstractEnv)
-    new_env = CommonRLEnv(env)
-    if ActionStyle(env) === FullActionSet()
-        @eval CRL.@provide CRL.valid_actions(x::typeof($new_env)) = get_legal_actions(x.env)
-        @eval CRL.@provide CRL.valid_action_mask(env::typeof($new_env)) = get_legal_actions_mask(env.env)
-    end
-    new_env
+struct CommonRLMarkovEnv{T<:AbstractEnv} <: CRL.AbstractMarkovEnv
+    env::T
 end
 
-CRL.@provide CRL.reset!(env::CommonRLEnv) = reset!(env.env)
-CRL.@provide CRL.actions(env::CommonRLEnv) = get_actions(env.env)
-CRL.@provide CRL.observe(env::CommonRLEnv) = get_state(env.env)
-CRL.@provide CRL.state(env::CommonRLEnv) = get_state(env.env)
-CRL.@provide CRL.terminated(env::CommonRLEnv) = get_terminal(env.env)
-CRL.@provide CRL.player(env::CommonRLEnv) = get_current_player(env.env)
+struct CommonRLZeroSumEnv{T<:AbstractEnv} <: CRL.AbstractZeroSumEnv
+    env::T
+end
 
-CRL.@provide function CRL.act!(env::CommonRLEnv, a)
+const CommonRLEnvs = Union{CommonRLEnv, CommonRLMarkovEnv, CommonRLZeroSumEnv}
+
+function Base.convert(::Type{CRL.AbstractEnv}, env::AbstractEnv)
+    if get_num_players(env) == 1
+        convert(CRL.AbstractMarkovEnv, env)
+    elseif get_num_players(env) == 2 && UtilityStyle(env) === ZERO_SUM
+        convert(CRL.AbstractZeroSumEnv, env)
+    else
+        CommonRLEnv(env)
+    end
+end
+
+Base.convert(::Type{CRL.AbstractMarkovEnv}, env::AbstractEnv) = CommonRLMarkovEnv(env)
+Base.convert(::Type{CRL.AbstractZeroSumEnv}, env::AbstractEnv) = CommonRLZeroSumEnv(env)
+
+CRL.@provide CRL.reset!(env::CommonRLEnvs) = reset!(env.env)
+CRL.@provide CRL.actions(env::CommonRLEnvs) = get_actions(env.env)
+CRL.@provide CRL.observe(env::CommonRLEnvs) = get_state(env.env)
+CRL.@provide CRL.state(env::CommonRLEnvs) = get_state(env.env)
+CRL.@provide CRL.terminated(env::CommonRLEnvs) = get_terminal(env.env)
+CRL.@provide CRL.player(env::CommonRLEnvs) = get_current_player(env.env)
+CRL.@provide CRL.clone(env::CommonRLEnvs) = CommonRLEnv(copy(env.env))
+
+CRL.@provide function CRL.act!(env::CommonRLEnvs, a)
     env.env(a)
     get_reward(env.env)
 end
 
-CRL.clone(env::CommonRLEnv) = CommonRLEnv(copy(env.env))
+CRL.valid_actions(x::CommonRLEnvs) = get_legal_actions(x.env)
+CRL.provided(::typeof(CRL.valid_actions), env::CommonRLEnvs) = ActionStyle(env.env) === FullActionSet()
+
+CRL.valid_action_mask(x::CommonRLEnvs) = get_legal_actions_mask(x.env)
+CRL.provided(::typeof(CRL.valid_action_mask), env::CommonRLEnvs) = ActionStyle(env.env) === FullActionSet()
 
 #####
 # RLBaseEnv
@@ -47,7 +64,7 @@ end
 Base.convert(::Type{AbstractEnv}, env::CRL.AbstractEnv) = convert(RLBaseEnv, env)
 Base.convert(::Type{RLBaseEnv}, env::CRL.AbstractEnv) = RLBaseEnv(env, 0.f0)  # can not determine reward ahead. Assume `Float32`.
 
-get_state(env::RLBaseEnv) = CRL.observe(env.env)
+get_state(env::RLBaseEnv) = InformationStyle(env) === PERFECT_INFORMATION ? CRL.state(env.env) : CRL.observe(env.env)
 get_actions(env::RLBaseEnv) = CRL.actions(env.env)
 get_reward(env::RLBaseEnv) = env.r
 get_terminal(env::RLBaseEnv) = CRL.terminated(env.env)
@@ -59,3 +76,6 @@ reset!(env::RLBaseEnv) = CRL.reset!(env.env)
 Base.copy(env::CommonRLEnv) = RLBaseEnv(CRL.clone(env.env), env.r)
 
 ActionStyle(env::RLBaseEnv) = CRL.provided(CRL.valid_actions, env.env) ? FullActionSet() : MinimalActionSet()
+UtilityStyle(env::RLBaseEnv{<:CRL.AbstractZeroSumEnv}) = ZERO_SUM
+InformationStyle(env::RLBaseEnv) = IMPERFECT_INFORMATION
+InformationStyle(env::RLBaseEnv{<:CRL.AbstractMarkovEnv}) = PERFECT_INFORMATION
