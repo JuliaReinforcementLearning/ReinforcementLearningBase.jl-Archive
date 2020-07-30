@@ -35,7 +35,6 @@ RandomPolicy(::FullActionSet, env::AbstractEnv, rng) = RandomPolicy(nothing, rng
 
 (p::RandomPolicy{Nothing})(env) = rand(p.rng, get_legal_actions(env))
 (p::RandomPolicy)(env) = rand(p.rng, p.action_space)
-(p::RandomPolicy)(env::MultiThreadEnv) = [p(x) for x in env]
 
 # TODO: TBD
 # Ideally we should return a Categorical distribution.
@@ -52,6 +51,7 @@ function get_prob(p::RandomPolicy{Nothing}, env)
 end
 
 get_prob(p::RandomPolicy, env, a) = 1 / length(p.action_space)
+get_prob(p::RandomPolicy{<:VectSpace}, env::MultiThreadEnv, a) = [1/length(x) for x in p.action_space.data]
 
 function get_prob(p::RandomPolicy{Nothing}, env, a)
     legal_actions = get_legal_actions(env)
