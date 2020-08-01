@@ -77,6 +77,6 @@ reset!(env::RLBaseEnv) = CRL.reset!(env.env)
 Base.copy(env::CommonRLEnv) = RLBaseEnv(CRL.clone(env.env), env.r)
 
 ActionStyle(env::RLBaseEnv) = CRL.provided(CRL.valid_actions, env.env) ? FullActionSet() : MinimalActionSet()
+UtilityStyle(env::RLBaseEnv) = GENERAL_SUM
 UtilityStyle(env::RLBaseEnv{<:CRL.AbstractZeroSumEnv}) = ZERO_SUM
 InformationStyle(env::RLBaseEnv) = IMPERFECT_INFORMATION
-InformationStyle(env::RLBaseEnv{<:CRL.AbstractMarkovEnv}) = PERFECT_INFORMATION
