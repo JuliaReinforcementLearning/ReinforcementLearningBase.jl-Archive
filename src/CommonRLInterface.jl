@@ -65,7 +65,7 @@ end
 Base.convert(::Type{AbstractEnv}, env::CRL.AbstractEnv) = convert(RLBaseEnv, env)
 Base.convert(::Type{RLBaseEnv}, env::CRL.AbstractEnv) = RLBaseEnv(env, 0.f0)  # can not determine reward ahead. Assume `Float32`.
 
-get_state(env::RLBaseEnv) = InformationStyle(env) === PERFECT_INFORMATION ? CRL.state(env.env) : CRL.observe(env.env)
+get_state(env::RLBaseEnv) = CRL.observe(env.env)
 get_actions(env::RLBaseEnv) = CRL.actions(env.env)
 get_reward(env::RLBaseEnv) = env.r
 get_terminal(env::RLBaseEnv) = CRL.terminated(env.env)
