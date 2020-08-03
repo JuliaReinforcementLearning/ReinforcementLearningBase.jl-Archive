@@ -37,7 +37,7 @@ CRL.@provide CRL.reset!(env::CommonRLEnvs) = reset!(env.env)
 CRL.@provide CRL.actions(env::CommonRLEnvs) = get_actions(env.env)
 CRL.@provide CRL.observe(env::CommonRLEnvs) = get_state(env.env)
 CRL.state(env::CommonRLEnvs) = get_state(env.env)
-CRL.provided(::typeof(CRL.state), env::CommoRLEnvs) = InformationStyle(env.env) === PERFECT_INFORMATION
+CRL.provided(::typeof(CRL.state), env::CommonRLEnvs) = InformationStyle(env.env) === PERFECT_INFORMATION
 CRL.@provide CRL.terminated(env::CommonRLEnvs) = get_terminal(env.env)
 CRL.@provide CRL.player(env::CommonRLEnvs) = get_current_player(env.env)
 CRL.@provide CRL.clone(env::CommonRLEnvs) = CommonRLEnv(copy(env.env))
