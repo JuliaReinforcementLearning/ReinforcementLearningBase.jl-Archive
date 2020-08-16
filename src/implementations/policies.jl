@@ -101,10 +101,7 @@ end
 """
     TabularRandomPolicy(;table=Dict(), rng=Random.GLOBAL_RNG)
 
-Use a table of size `(num_actions, num_state)` to store action probabilities.
-
-!!! warning
-    You need to guarantee that every element is between `[0,1]` and each column sums to `1`.
+Use a table to store action probabilities.
 """
 struct TabularRandomPolicy{S,T,R<:AbstractRNG} <: AbstractPolicy
     table::Dict{S, Vector{T}}
