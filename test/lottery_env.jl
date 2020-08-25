@@ -27,7 +27,7 @@ RLBase.get_actions(env::LotteryEnv) = (:PowerRich, :MegaHaul, nothing)
 RLBase.get_state(env::LotteryEnv) = env.terminal ? 2 : 1
 Random.seed!(env::LotteryEnv, seed) = Random.seed!(env.rng, seed)
 
-RLBase.ActionStyle(env::LotteryEnv) = FullActionSet()
+RLBase.ActionStyle(::Type{<:LotteryEnv}) = FullActionSet()
 RLBase.get_legal_actions(env::LotteryEnv) = (:PowerRich, :MegaHaul)
 RLBase.get_legal_actions_mask(env::LotteryEnv) = [true, true, false]
 
