@@ -91,7 +91,7 @@ function MultiAgent(n::Integer)
     elseif n == 1
         throw(ArgumentError("do you want mean SINGLE_AGENT?"))
     else
-        MultiAgent{n}()
+        MultiAgent{convert(Int, n)}()
     end
 end
 
@@ -264,6 +264,14 @@ By default the [`MINIMAL_ACTION_SET`](@ref) is returned.
 ActionStyle(::Type{<:AbstractEnv}) = MINIMAL_ACTION_SET
 
 #####
+# state related traits
+#####
+abstract type AbstractStateStyle end
+
+@api struct Information{T} <: AbstractStateStyle end
+@api struct Observation{T} <: AbstractStateStyle end
+
+#####
 # General
 #####
 
@@ -305,13 +313,15 @@ Required for environments of [`FULL_ACTION_SET`](@ref).
 )
 
 """
-    get_state([t::Type], env, player=get_current_player(env)) -> state
+    get_state(env, [t::Type], player=get_current_player(env)) -> state
 
 The state can be of any type. However, most neural network based algorithms assume it's an `AbstractArray`.
 For environments with many different states provided (inner state, information state, etc),
 users need to provide `t::Type` to declare which kind of state they want.
 """
 @multi_agent_env_api get_state(env::AbstractEnv, player = get_current_player(env))
+
+get_state(env::AbstractEnv, ss::AbstractStateStyle) = get_state(env, ss, get_current_player(env))
 
 """
     get_current_player(env)
