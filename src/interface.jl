@@ -32,7 +32,7 @@ Policy is the most basic concept in reinforcement learning. A policy is a functi
 
 Update the policy `π` with online/offline experience.
 """
-@api update!(π::AbstractPolicy, experience) = nothing
+@api update!(π::AbstractPolicy, experience)
 
 """
     get_prob(π::AbstractPolicy, env)
@@ -266,10 +266,14 @@ ActionStyle(::Type{<:AbstractEnv}) = MINIMAL_ACTION_SET
 #####
 # state related traits
 #####
-abstract type AbstractStateStyle end
+abstract type AbstractStateStyle{T} end
 
-@api struct Information{T} <: AbstractStateStyle end
-@api struct Observation{T} <: AbstractStateStyle end
+@api struct Information{T} <: AbstractStateStyle{T} end
+@api struct Observation{T} <: AbstractStateStyle{T} end
+@api struct PartialObservation{T} <: AbstractStateStyle{T} end
+
+@env_api DefaultStateStyle(env::T) where T<:AbstractEnv = DefaultStateStyle(T)
+DefaultStateStyle(::Type{<:AbstractEnv}) = Observation{Array}()
 
 #####
 # General
@@ -313,15 +317,14 @@ Required for environments of [`FULL_ACTION_SET`](@ref).
 )
 
 """
-    get_state(env, [t::Type], player=get_current_player(env)) -> state
+    get_state(env, [state_style=DefaultStateStyle(env)], [player=get_current_player(env)]) -> state
 
 The state can be of any type. However, most neural network based algorithms assume it's an `AbstractArray`.
 For environments with many different states provided (inner state, information state, etc),
-users need to provide `t::Type` to declare which kind of state they want.
+users need to provide `state_style` to declare which kind of state they want.
 """
-@multi_agent_env_api get_state(env::AbstractEnv, player = get_current_player(env))
-
-get_state(env::AbstractEnv, ss::AbstractStateStyle) = get_state(env, ss, get_current_player(env))
+@multi_agent_env_api get_state(env::AbstractEnv, state_style=DefaultStateStyle(env), player = get_current_player(env))
+get_state(env::AbstractEnv, player, state_style::AbstractStateStyle) = get_state(env, state_style, player)
 
 """
     get_current_player(env)

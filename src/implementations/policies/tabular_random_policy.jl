@@ -18,7 +18,7 @@ TabularRandomPolicy(;rng=Random.GLOBAL_RNG) = TabularRandomPolicy{Int, Float32}(
 TabularRandomPolicy{S}(;rng=Random.GLOBAL_RNG) where {S} = TabularRandomPolicy{S, Float32}(;rng=rng)
 TabularRandomPolicy{S, T}(;rng=Random.GLOBAL_RNG) where {S,T} = TabularRandomPolicy(Dict{S,Vector{T}}(), rng)
 
-(p::TabularRandomPolicy)(env::AbstractEnv) = weighted_sample(p.rng, get_prob(p, env))
+(p::TabularRandomPolicy)(env::AbstractEnv) = get_actions(env)[weighted_sample(p.rng, get_prob(p, env))]
 
 function get_prob(p::TabularRandomPolicy, env::AbstractEnv)
     s = get_state(env)
@@ -37,4 +37,4 @@ function get_prob(p::TabularRandomPolicy, env::AbstractEnv)
     end
 end
 
-update!(p::TabularRandomPolicy, experience::Pair{Int, <:AbstractVector}) = p.table[first(experience)] = last(experience)
+update!(p::TabularRandomPolicy, experience::Pair) = p.table[first(experience)] = last(experience)

@@ -1,4 +1,4 @@
-export CFRPolicy
+export CFRPolicy, CFR⁺Policy
 
 struct InfoStateNode
     strategy::Vector{Float64}
@@ -12,7 +12,7 @@ function init_info_state_nodes(env::AbstractEnv)
     nodes = Dict{String, InfoStateNode}()
     walk(env) do x
         if !get_terminal(x) && get_current_player(x) != get_chance_player(x)
-            get!(nodes, get_state(x, Information{String}()), InfoStateNode(length(get_legal_actions(x))))
+            get!(nodes, get_state(x), InfoStateNode(length(get_legal_actions(x))))
         end
     end
     nodes
@@ -25,39 +25,51 @@ See more details: [An Introduction to Counterfactual Regret Minimization](http:/
 """
 struct CFRPolicy{S,R<:AbstractRNG} <: AbstractPolicy
     nodes::Dict{S, InfoStateNode}
-    rng::R
+    behavior_policy::TabularRandomPolicy{String, Float64, R}
 end
 
-(p::CFRPolicy)(env::AbstractEnv) = p(env, NumAgentStyle(env), DynamicStyle(env), RewardStyle(env), ChanceStyle(env))
+(p::CFRPolicy)(env::AbstractEnv) = p.behavior_policy(env)
 
-function (p::CFRPolicy)(env, ::MultiAgent, ::Sequential, ::TerminalReward, ::ExplicitStochastic)
-    legal_actions = get_legal_actions(env)
-    probs = p.nodes[get_state(env, Information{String}())].strategy
-    legal_actions[sample(p.rng, Weights(probs, one(eltype(probs))))]
-end
-
-get_prob(p::CFRPolicy, env::AbstractEnv) = p.nodes[get_state(env, Information{String}())].strategy
+get_prob(p::CFRPolicy, env::AbstractEnv) = get_prob(p.behavior_policy, env)
 
 """
     CFRPolicy(;n_iter::Int, env::AbstractEnv)
 """
-function CFRPolicy(;n_iter::Int, env::AbstractEnv, rng=Random.GLOBAL_RNG)
+function CFRPolicy(;n_iter::Int, env::AbstractEnv, rng=Random.GLOBAL_RNG, is_reset_neg_regrets=false)
     @assert NumAgentStyle(env) isa MultiAgent
     @assert DynamicStyle(env) === SEQUENTIAL
     @assert RewardStyle(env) === TERMINAL_REWARD
     @assert ChanceStyle(env) === EXPLICIT_STOCHASTIC
+    @assert DefaultStateStyle(env) === Information{String}()
 
     nodes = init_info_state_nodes(env)
+
     for _ in 1:n_iter
         for p in get_players(env)
             if p != get_chance_player(env)
                 init_reach_prob = Dict(x=>1.0 for x in get_players(env) if x != get_chance_player(env))
                 cfr!(nodes, env, p, init_reach_prob, 1.0)
                 update_strategy!(nodes)
+
+                if is_reset_neg_regrets
+                    for node in values(nodes)
+                        node.cumulative_regret .= max.(node.cumulative_regret, 0)
+                    end
+                end
             end
         end
     end
-    CFRPolicy(nodes,rng)
+
+    tabular_policy = TabularRandomPolicy{String, Float64}(;rng=rng)
+
+    for (k,v) in nodes
+        s = sum(v.cumulative_strategy)
+        if s != 0
+            update!(tabular_policy, k => v.cumulative_strategy ./ s)
+        end
+    end
+
+    CFRPolicy(nodes, tabular_policy)
 end
 
 function cfr!(nodes, env, player, reach_probs, chance_player_reach_prob)
@@ -72,7 +84,7 @@ function cfr!(nodes, env, player, reach_probs, chance_player_reach_prob)
             v
         else
             v = 0.
-            node = nodes[get_state(env, Information{String}())]
+            node = nodes[get_state(env)]
             legal_actions = get_legal_actions(env)
             U = player == get_current_player(env) ? Vector{Float64}(undef, length(legal_actions)) : nothing
             
