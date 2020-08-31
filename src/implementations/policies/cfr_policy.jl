@@ -79,7 +79,7 @@ function cfr!(nodes, env, player, reach_probs, chance_player_reach_prob, ratio)
         if get_current_player(env) == get_chance_player(env)
             v = 0.
             for a::ActionProbPair in get_legal_actions(env)
-                v += cfr!(nodes, child(env, a), player, reach_probs, chance_player_reach_prob * a.prob, ratio)
+                v += a.prob * cfr!(nodes, child(env, a), player, reach_probs, chance_player_reach_prob * a.prob, ratio)
             end
             v
         else

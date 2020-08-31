@@ -44,7 +44,7 @@ get_prob(p::RandomPolicy, env) = fill(1 / length(p.action_space), length(p.actio
 
 get_prob(p::RandomPolicy{Nothing}, env) = get_prob(p, env, ChanceStyle(env))
 
-function get_prob(p::RandomPolicy{Nothing}, env, ::Any)
+function get_prob(p::RandomPolicy{Nothing}, env, ::AbstractChanceStyle)
     mask = get_legal_actions_mask(env)
     n = sum(mask)
     prob = zeros(length(mask))
