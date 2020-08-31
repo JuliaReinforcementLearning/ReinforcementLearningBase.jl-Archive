@@ -82,7 +82,7 @@ get_state(env::StateOverriddenEnv, args...; kwargs...) =
     foldl(|>, env.processors; init = get_state(env.env, args...; kwargs...))
 
 function reset!(env::StateOverriddenEnv, args...; kwargs...)
-    reset!(env.env)
+    reset!(env.env, args..., kwargs...)
     for p in env.processors
         reset!(p)
     end
