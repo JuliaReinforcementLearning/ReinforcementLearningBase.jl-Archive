@@ -1,4 +1,4 @@
-export CFRPolicy, CFR⁺Policy
+export CFRPolicy
 
 struct InfoStateNode
     strategy::Vector{Float64}
@@ -35,7 +35,7 @@ get_prob(p::CFRPolicy, env::AbstractEnv) = get_prob(p.behavior_policy, env)
 """
     CFRPolicy(;n_iter::Int, env::AbstractEnv)
 """
-function CFRPolicy(;n_iter::Int, env::AbstractEnv, rng=Random.GLOBAL_RNG, is_reset_neg_regrets=false)
+function CFRPolicy(;n_iter::Int, env::AbstractEnv, rng=Random.GLOBAL_RNG, is_reset_neg_regrets=false, is_linear_averaging=false)
     @assert NumAgentStyle(env) isa MultiAgent
     @assert DynamicStyle(env) === SEQUENTIAL
     @assert RewardStyle(env) === TERMINAL_REWARD
@@ -44,11 +44,11 @@ function CFRPolicy(;n_iter::Int, env::AbstractEnv, rng=Random.GLOBAL_RNG, is_res
 
     nodes = init_info_state_nodes(env)
 
-    for _ in 1:n_iter
+    for i in 1:n_iter
         for p in get_players(env)
             if p != get_chance_player(env)
                 init_reach_prob = Dict(x=>1.0 for x in get_players(env) if x != get_chance_player(env))
-                cfr!(nodes, env, p, init_reach_prob, 1.0)
+                cfr!(nodes, env, p, init_reach_prob, 1.0, is_linear_averaging ? i : 1)
                 update_strategy!(nodes)
 
                 if is_reset_neg_regrets
@@ -72,14 +72,14 @@ function CFRPolicy(;n_iter::Int, env::AbstractEnv, rng=Random.GLOBAL_RNG, is_res
     CFRPolicy(nodes, tabular_policy)
 end
 
-function cfr!(nodes, env, player, reach_probs, chance_player_reach_prob)
+function cfr!(nodes, env, player, reach_probs, chance_player_reach_prob, ratio)
     if get_terminal(env)
         get_reward(env, player)
     else
         if get_current_player(env) == get_chance_player(env)
             v = 0.
             for a::ActionProbPair in get_legal_actions(env)
-                v += cfr!(nodes, child(env, a), player, reach_probs, chance_player_reach_prob * a.prob)
+                v += cfr!(nodes, child(env, a), player, reach_probs, chance_player_reach_prob * a.prob, ratio)
             end
             v
         else
@@ -93,7 +93,7 @@ function cfr!(nodes, env, player, reach_probs, chance_player_reach_prob)
                 new_reach_probs = copy(reach_probs)
                 new_reach_probs[get_current_player(env)] *= prob
                 
-                u = cfr!(nodes, child(env, action), player, new_reach_probs, chance_player_reach_prob)
+                u = cfr!(nodes, child(env, action), player, new_reach_probs, chance_player_reach_prob, ratio)
                 isnothing(U) || (U[i] = u)
                 v += prob * u
             end
@@ -105,7 +105,7 @@ function cfr!(nodes, env, player, reach_probs, chance_player_reach_prob)
                     (reach_probs[p] for p in get_players(env) if p != player && p != get_chance_player(env));
                     init=chance_player_reach_prob)
                 node.cumulative_regret .+= counterfactual_reach_prob .* (U .- v)
-                node.cumulative_strategy .+= reach_prob .* node.strategy
+                node.cumulative_strategy .+= ratio .* reach_prob .* node.strategy
             end
             v
         end

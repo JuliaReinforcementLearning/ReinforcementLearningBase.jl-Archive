@@ -42,12 +42,22 @@ RandomPolicy(::FullActionSet, env::AbstractEnv, rng) = RandomPolicy(nothing, rng
 # watch https://github.com/JuliaStats/Distributions.jl/issues/1139
 get_prob(p::RandomPolicy, env) = fill(1 / length(p.action_space), length(p.action_space))
 
-function get_prob(p::RandomPolicy{Nothing}, env)
+get_prob(p::RandomPolicy{Nothing}, env) = get_prob(p, env, ChanceStyle(env))
+
+function get_prob(p::RandomPolicy{Nothing}, env, ::Any)
     mask = get_legal_actions_mask(env)
     n = sum(mask)
     prob = zeros(length(mask))
     prob[mask] .= 1 / n
     prob
+end
+
+function get_prob(p::RandomPolicy{Nothing}, env, ::ExplicitStochastic)
+    if get_current_player(env) == get_chance_player(env)
+        [x.prob for x in get_legal_actions(env)]
+    else
+        get_prob(p, env, DETERMINISTIC)
+    end
 end
 
 get_prob(p::RandomPolicy, env, a) = 1 / length(p.action_space)
@@ -63,3 +73,4 @@ function get_prob(p::RandomPolicy{Nothing}, env, a)
     end
 end
 
+get_prob(p::RandomPolicy{Nothing}, env, a::ActionProbPair) = a.prob
