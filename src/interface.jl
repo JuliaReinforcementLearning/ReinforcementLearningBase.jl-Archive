@@ -32,7 +32,7 @@ Policy is the most basic concept in reinforcement learning. A policy is a functi
 
 Update the policy `π` with online/offline experience.
 """
-@api update!(π::AbstractPolicy, experience) = nothing
+@api update!(π::AbstractPolicy, experience)
 
 """
     get_prob(π::AbstractPolicy, env)
