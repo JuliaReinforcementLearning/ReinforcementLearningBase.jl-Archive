@@ -91,7 +91,7 @@ function MultiAgent(n::Integer)
     elseif n == 1
         throw(ArgumentError("do you want mean SINGLE_AGENT?"))
     else
-        MultiAgent{n}()
+        MultiAgent{convert(Int, n)}()
     end
 end
 
@@ -397,6 +397,11 @@ end
 
 @api children(env::AbstractEnv) = (child(env, action) for action in get_legal_actions(env))
 
+"""
+    walk(f, env::AbstractEnv)
+
+Call `f` with `env` and its descendants.
+"""
 @api function walk(f, env::AbstractEnv)
     f(env)
     for x in children(env)
