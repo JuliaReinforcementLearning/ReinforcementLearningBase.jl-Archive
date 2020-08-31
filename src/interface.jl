@@ -264,6 +264,19 @@ By default the [`MINIMAL_ACTION_SET`](@ref) is returned.
 ActionStyle(::Type{<:AbstractEnv}) = MINIMAL_ACTION_SET
 
 #####
+# DefaultStateStyle
+#####
+
+abstract type AbstractStateStyle{T} end
+
+@api struct Information{T} <: AbstractStateStyle{T} end
+@api struct Observation{T} <: AbstractStateStyle{T} end
+@api struct PartialObservation{T} <: AbstractStateStyle{T} end
+
+@env_api DefaultStateStyle(env::T) where T<:AbstractEnv = DefaultStateStyle(T)
+DefaultStateStyle(::Type{<:AbstractEnv}) = Observation{Array}()
+
+#####
 # General
 #####
 
@@ -306,13 +319,15 @@ Required for environments of [`FULL_ACTION_SET`](@ref).
 )
 
 """
-    get_state([t::Type], env, player=get_current_player(env)) -> state
+    get_state(env, [DefaultStateStyle(env)], [get_current_player(env)]) -> state
 
 The state can be of any type. However, most neural network based algorithms assume it's an `AbstractArray`.
 For environments with many different states provided (inner state, information state, etc),
 users need to provide `t::Type` to declare which kind of state they want.
 """
-@multi_agent_env_api get_state(env::AbstractEnv, player = get_current_player(env))
+@multi_agent_env_api get_state(env::AbstractEnv) = get_state(env, DefaultStateStyle(env))
+get_state(env::AbstractEnv, ss::AbstractStateStyle) = get_state(env, ss, get_current_player(env))
+get_state(env::AbstractEnv, player) = get_state(env, DefaultStateStyle(env), player)
 
 """
     get_current_player(env)
