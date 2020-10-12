@@ -164,6 +164,9 @@ function (env::MaxTimeoutEnv)(args...; kwargs...)
     env.current_t = env.current_t + 1
 end
 
+# partial constructor to allow chaining
+MaxTimeoutEnv(max_t::Int; current_t::Int = 1) = env -> MaxTimeoutEnv(env, max_t, current_t)
+
 for f in vcat(ENV_API, MULTI_AGENT_ENV_API)
     if f != :get_terminal
         @eval $f(x::MaxTimeoutEnv, args...; kwargs...) = $f(x.env, args...; kwargs...)
