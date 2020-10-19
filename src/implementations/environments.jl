@@ -173,6 +173,9 @@ for f in vcat(ENV_API, MULTI_AGENT_ENV_API)
     end
 end
 
+get_actions(env::ActionTransformedEnv{<:Any, typeof(identity)}, args...) = get_actions(env.env, args...)
+get_legal_actions(env::ActionTransformedEnv{<:Any, typeof(identity)}, args...) = get_legal_actions(env.env, args...)
+
 get_actions(env::ActionTransformedEnv, args...) = map(env.mapping, get_actions(env.env, args...))
 get_legal_actions(env::ActionTransformedEnv, args...) = map(env.mapping, get_legal_actions(env.env, args...))
 
