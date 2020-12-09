@@ -5,7 +5,7 @@
     Random.seed!(policy, 111)
     reset!(env)
     run(policy, env)
-    @test get_terminal(env)
+    @test is_terminated(env)
 
     discrete_env =
         env |> ActionTransformedEnv(
@@ -16,5 +16,5 @@
     policy = RandomPolicy(discrete_env)
     reset!(discrete_env)
     run(policy, discrete_env)
-    @test get_terminal(discrete_env)
+    @test is_terminated(discrete_env)
 end

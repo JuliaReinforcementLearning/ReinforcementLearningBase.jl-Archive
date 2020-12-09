@@ -10,10 +10,10 @@
 
     @test get_state(x) == CRL.observe(y) == get_state(z)
     @test get_actions(x) == CRL.actions(y) == get_actions(z)
-    @test get_legal_actions(x) == CRL.valid_actions(y) == get_legal_actions(z)
-    @test get_legal_actions_mask(x) == CRL.valid_action_mask(y) == get_legal_actions_mask(z)
+    @test get_legal_action_space(x) == CRL.valid_actions(y) == get_legal_action_space(z)
+    @test get_legal_action_space_mask(x) == CRL.valid_action_mask(y) == get_legal_action_space_mask(z)
     @test get_current_player(x) == CRL.player(y) == get_current_player(z)
-    @test get_terminal(x) == CRL.terminated(y) == get_terminal(z)
+    @test is_terminated(x) == CRL.terminated(y) == is_terminated(z)
 
     a = rand(get_actions(x))
     x(a)
@@ -24,10 +24,10 @@
 
     @test get_state(x) == CRL.observe(y) == get_state(z)
     @test get_actions(x) == CRL.actions(y) == get_actions(z)
-    @test get_legal_actions(x) == CRL.valid_actions(y) == get_legal_actions(z)
-    @test get_legal_actions_mask(x) == CRL.valid_action_mask(y) == get_legal_actions_mask(z)
+    @test get_legal_action_space(x) == CRL.valid_actions(y) == get_legal_action_space(z)
+    @test get_legal_action_space_mask(x) == CRL.valid_action_mask(y) == get_legal_action_space_mask(z)
     @test get_current_player(x) == CRL.player(y) == get_current_player(z)
-    @test get_terminal(x) == CRL.terminated(y) == get_terminal(z)
+    @test is_terminated(x) == CRL.terminated(y) == is_terminated(z)
 
     reset!(x)
     CRL.reset!(y)
@@ -35,9 +35,9 @@
 
     @test get_state(x) == CRL.observe(y) == get_state(z)
     @test get_actions(x) == CRL.actions(y) == get_actions(z)
-    @test get_legal_actions(x) == CRL.valid_actions(y) == get_legal_actions(z)
-    @test get_legal_actions_mask(x) == CRL.valid_action_mask(y) == get_legal_actions_mask(z)
+    @test get_legal_action_space(x) == CRL.valid_actions(y) == get_legal_action_space(z)
+    @test get_legal_action_space_mask(x) == CRL.valid_action_mask(y) == get_legal_action_space_mask(z)
     @test get_current_player(x) == CRL.player(y) == get_current_player(z)
-    @test get_terminal(x) == CRL.terminated(y) == get_terminal(z)
+    @test is_terminated(x) == CRL.terminated(y) == is_terminated(z)
 
 end
