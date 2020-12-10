@@ -9,7 +9,7 @@ shared by other components in ReinforcementLearning ecosystem.
 ## Examples
 
 <table>
-  <tr>
+  <tr align="center">
     <th></th>
     <th colspan="2">NumAgentStyle</th>
     <th colspan="2">DynamicStyle</th>
@@ -20,7 +20,7 @@ shared by other components in ReinforcementLearning ecosystem.
     <th colspan="4">ChanceStyle</th>
     <th colspan="4">UtilityStyle</th>
   </tr>
-  <tr>
+  <tr align="center">
     <th></th>
     <th>SINGLE_AGENT</th>
     <th>MultiAgent</th>
@@ -44,29 +44,28 @@ shared by other components in ReinforcementLearning ecosystem.
     <th>GENERAL_SUM</th>
     <th>IDENTICAL_REWARD</th>
   </tr>
-  <tr>
-  <tr>
+  <tr align="center">
     <td>MultiArmBanditsEnv</td>
-    <td style="text-align:center">✔️<!-- SINGLE_AGENT --></td>
-    <td style="text-align:center"> <!-- MultiAgent --> </td>
-    <td style="text-align:center">✔️<!-- SEQUENTIAL  --> </td>
-    <td style="text-align:center"> <!-- SIMULTANEOUS --> </td>
-    <td style="text-align:center">✔️<!-- MINIMAL_ACTION_SET  --> </td>
-    <td style="text-align:center"> <!-- FULL_ACTION_SET  --> </td>
-    <td style="text-align:center"> <!-- STEP_REWARD --> </td>
-    <td style="text-align:center">✔️<!-- TERMINAL_REWARD --> </td>
-    <td style="text-align:center"> <!-- PERFECT_INFORMATION --> </td>
-    <td style="text-align:center">✔️<!-- IMPERFECT_INFORMATION --> </td>
-    <td style="text-align:center">✔️<!-- Observation --> </td>
-    <td style="text-align:center"> <!-- InternalState --> </td>
-    <td style="text-align:center"> <!-- Information --> </td>
-    <td style="text-align:center">✔️<!-- STOCHASTIC --> </td>
-    <td style="text-align:center"> <!-- DETERMINISTIC --> </td>
-    <td style="text-align:center"> <!-- EXPLICIT_STOCHASTIC --> </td>
-    <td style="text-align:center"> <!-- SAMPLED_STOCHASTIC --> </td>
-    <td style="text-align:center"> <!-- ZERO_SUM --> </td>
-    <td style="text-align:center"> <!-- CONSTANT_SUM --> </td>
-    <td style="text-align:center">✔️<!-- GENERAL_SUM --> </td>
-    <td style="text-align:center"> <!-- IDENTICAL_REWARD --> </td>
+    <td>✔️<!-- SINGLE_AGENT --></td>
+    <td> <!-- MultiAgent --> </td>
+    <td>✔️<!-- SEQUENTIAL  --> </td>
+    <td> <!-- SIMULTANEOUS --> </td>
+    <td>✔️<!-- MINIMAL_ACTION_SET  --> </td>
+    <td> <!-- FULL_ACTION_SET  --> </td>
+    <td> <!-- STEP_REWARD --> </td>
+    <td>✔️<!-- TERMINAL_REWARD --> </td>
+    <td> <!-- PERFECT_INFORMATION --> </td>
+    <td>✔️<!-- IMPERFECT_INFORMATION --> </td>
+    <td>✔️<!-- Observation --> </td>
+    <td> <!-- InternalState --> </td>
+    <td> <!-- Information --> </td>
+    <td>✔️<!-- STOCHASTIC --> </td>
+    <td> <!-- DETERMINISTIC --> </td>
+    <td> <!-- EXPLICIT_STOCHASTIC --> </td>
+    <td> <!-- SAMPLED_STOCHASTIC --> </td>
+    <td> <!-- ZERO_SUM --> </td>
+    <td> <!-- CONSTANT_SUM --> </td>
+    <td>✔️<!-- GENERAL_SUM --> </td>
+    <td> <!-- IDENTICAL_REWARD --> </td>
   </tr>
 </table>
