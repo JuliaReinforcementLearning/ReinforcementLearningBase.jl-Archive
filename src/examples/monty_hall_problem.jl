@@ -101,3 +101,12 @@ function reset!(env::MontyHallEnv)
     env.host_action = nothing
     env.reward = nothing
 end
+
+NumAgentStyle(::MontyHallEnv) = SINGLE_AGENT
+DynamicStyle(::MontyHallEnv) = SEQUENTIAL
+ActionStyle(::MontyHallEnv) = FULL_ACTION_SET
+InformationStyle(::MontyHallEnv) = IMPERFECT_INFORMATION  # the distribution of noise and original reward is unknown to the agent
+StateStyle(::MontyHallEnv) = (Observation{Int}(),)
+RewardStyle(::MontyHallEnv) = TERMINAL_REWARD
+UtilityStyle(::MontyHallEnv) = GENERAL_SUM
+ChanceStyle(::MontyHallEnv) = STOCHASTIC  # the same action lead to different reward each time.

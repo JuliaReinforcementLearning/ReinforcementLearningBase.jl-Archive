@@ -19,27 +19,43 @@ function env_traits()
     [eval(x) for x in RLBase.ENV_API if endswith(String(x), "Style")]
 end
 
-Base.show(io::IO, ::MIME"text/plain", env::AbstractEnv) = print(io, nameof(env))
+Base.show(io::IO, t::MIME"text/plain", env::AbstractEnv) = show(io, MIME"text/markdown"(), env)
 
 function Base.show(io::IO, t::MIME"text/markdown", env::AbstractEnv)
     show(io, t, Markdown.parse("""
-    # $(name(env))
+    # $(nameof(env))
 
     ## Traits
     | Trait Type | Value |
     |:---------- | ----- |
     $(join(["|$(string(f))|$(f(env))|" for f in env_traits()], "\n"))
 
-    ## Actions
-    $(actions(env))
+    ## Action Space
+    `$(action_space(env))`
 
-    ## Players
-    $(join(["- `$p`" for p in players(env)], "\n"))
+    ## State Space
+    `$(state_space(env))`
 
-    ## Current Player
-    `$(current_player(env))`
-
-    ## Is Environment Terminated?
-    $(terminal(env) ? "Yes" : "No")
     """))
+
+    if NumAgentStyle(env) !== SINGLE_AGENT
+        show(io, t, Markdown.parse("""
+            ## Players
+            $(join(["- `$p`" for p in players(env)], "\n"))
+
+            ## Current Player
+            `$(current_player(env))`
+            """))
+    end
+
+    show(io, t, Markdown.parse("""
+        ## Is Environment Terminated?
+        $(is_terminated(env) ? "Yes" : "No")
+
+        ## Current State
+
+        ```
+        $(state(env))
+        ```
+        """))
 end

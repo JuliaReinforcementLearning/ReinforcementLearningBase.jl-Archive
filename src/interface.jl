@@ -271,7 +271,7 @@ abstract type AbstractUtilityStyle <: AbstractEnvStyle end
 @api struct GeneralSum <: AbstractUtilityStyle end
 @api struct IdenticalUtility <: AbstractUtilityStyle end
 
-"Rewards of all players sum to 0"
+"Rewards of all players sum to 0. A special case of [`CONSTANT_SUM`]."
 @api const ZERO_SUM = ZeroSum()
 
 "Rewards of all players sum to a constant"
@@ -281,7 +281,7 @@ abstract type AbstractUtilityStyle <: AbstractEnvStyle end
 @api const GENERAL_SUM = GeneralSum()
 
 "Every player gets the same reward"
-@api const IDENTICAL_REWARD = IdenticalUtility()
+@api const IDENTICAL_UTILITY = IdenticalUtility()
 
 """
     UtilityStyle(env::AbstractEnv)
@@ -329,9 +329,9 @@ ActionStyle(::Type{<:AbstractEnv}) = MINIMAL_ACTION_SET
 abstract type AbstractStateStyle end
 
 "See the definition of [information set](https://en.wikipedia.org/wiki/Information_set_(game_theory))"
-@api struct Information <: AbstractStateStyle end
-@api struct InternalState <: AbstractStateStyle end
-@api struct Observation <: AbstractStateStyle end
+@api struct Information{T} <: AbstractStateStyle end
+@api struct InternalState{T} <: AbstractStateStyle end
+@api struct Observation{T} <: AbstractStateStyle end
 
 """
     StateStyle(env::AbstractEnv)
@@ -346,7 +346,8 @@ Define the style of `state(env)`. Possible values are:
     This is experimental.
 """
 @env_api StateStyle(env::T) where {T<:AbstractEnv} = StateStyle(T)
-StateStyle(::Type{<:AbstractEnv}) = (Observation(),)
+StateStyle(::Type{<:AbstractEnv}) = (Observation{Int}(),)
+@env_api DefaultStateStyle(env::AbstractEnv) = first(StateStyle(env))
 
 #####
 # General
@@ -367,13 +368,14 @@ const SIMULTANEOUS_PLAYER = SimultaneousPlayer()
 @api copy(env::AbstractEnv) = deepcopy(env)
 @api copyto!(dest::AbstractEnv, src::AbstractEnv)
 
-@env_api nameof(env::AbstractEnv)
+@env_api nameof(env::AbstractEnv) = nameof(typeof(env))
 
 """
 Get the action distribution of chance player.
 
 !!! note
-    Current player of `env` must be the chance player.
+    Only valid for environments of [`EXPLICIT_STOCHASTIC`](@ref) style. The
+    current player of `env` must be the chance player.
 """
 @env_api prob(env::AbstractEnv, player=chance_player(env))
 
@@ -414,7 +416,7 @@ assume an `AbstractArray` is returned. For environments with many different stat
 provided (inner state, information state, etc), users need to provide `style`
 to declare which kind of state they want.
 """
-@multi_agent_env_api state(env::AbstractEnv) = state(env, first(StateStyle(env)))
+@multi_agent_env_api state(env::AbstractEnv) = state(env, DefaultStateStyle(env))
 state(env::AbstractEnv, ss::AbstractStateStyle) = state(env, ss, current_player(env))
 state(env::AbstractEnv, player) = state(env, DefaultStateStyle(env), player)
 
@@ -471,14 +473,6 @@ num_players(::MultiAgent{N}) where {N} = N
     reward(env, player=current_player(env))
 """
 @multi_agent_env_api reward(env::AbstractEnv, player = current_player(env))
-
-"""
-    prob(env, player=chance_player(env))
-
-Only valid for environments of [`EXPLICIT_STOCHASTIC`](@ref) style. Here
-`player` must be a chance player.
-"""
-@multi_agent_env_api prob(env::AbstractEnv, player = chance_player(env))
 
 """
     child(env::AbstractEnv, action)

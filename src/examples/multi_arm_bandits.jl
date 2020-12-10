@@ -74,3 +74,16 @@ state_space(env::MultiArmBanditsEnv) = Base.OneTo(1)
 function reset!(env::MultiArmBanditsEnv)
     env.is_terminated = false
 end
+
+# For this simple one-shot environment, the default definitions are enough.
+# Here we redefined them to help you compare the traits accross different
+# environments to gain a better understanding.
+
+NumAgentStyle(::MultiArmBanditsEnv) = SINGLE_AGENT
+DynamicStyle(::MultiArmBanditsEnv) = SEQUENTIAL
+ActionStyle(::MultiArmBanditsEnv) = MINIMAL_ACTION_SET
+InformationStyle(::MultiArmBanditsEnv) = IMPERFECT_INFORMATION  # the distribution of noise and original reward is unknown to the agent
+StateStyle(::MultiArmBanditsEnv) = (Observation{Int}(),)
+RewardStyle(::MultiArmBanditsEnv) = TERMINAL_REWARD
+UtilityStyle(::MultiArmBanditsEnv) = GENERAL_SUM
+ChanceStyle(::MultiArmBanditsEnv) = STOCHASTIC  # the same action lead to different reward each time.

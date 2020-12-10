@@ -67,3 +67,12 @@ state(env::TigerProblemEnv, ::InternalState) = env.tiger_pos
 state_space(env::TigerProblemEnv) = state_space(Observation(), env)
 state_space(env::TigerProblemEnv, ::Observation) = 1:4
 state_space(env::TigerProblemEnv, ::InternalState) = 1:2
+
+NumAgentStyle(::TigerProblemEnv) = SINGLE_AGENT
+DynamicStyle(::TigerProblemEnv) = SEQUENTIAL
+ActionStyle(::TigerProblemEnv) = MINIMAL_ACTION_SET
+InformationStyle(::TigerProblemEnv) = IMPERFECT_INFORMATION
+StateStyle(::TigerProblemEnv) = (Observation{Int}(),InternalState{Int}())
+RewardStyle(::TigerProblemEnv) = STEP_REWARD
+UtilityStyle(::TigerProblemEnv) = GENERAL_SUM
+ChanceStyle(::TigerProblemEnv) = STOCHASTIC

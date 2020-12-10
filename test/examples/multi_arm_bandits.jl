@@ -1,0 +1,3 @@
+@testset "MultiArmBanditsEnv" begin
+    
+end
