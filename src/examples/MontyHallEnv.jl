@@ -1,3 +1,5 @@
+export MontyHallEnv
+
 const REWARD_OF_GOAT = 10.
 const REWARD_OF_CAR = 1_000.
 
@@ -20,17 +22,17 @@ Quoted from [wiki](https://en.wikipedia.org/wiki/Monty_Hall_problem):
 > No. 3, which has a goat. He then says to you, "Do you want to pick door No.
 > 2?" Is it to your advantage to switch your choice?
 
-Here we'll introduce the first environment trait: [`ActionStyle`](@ref)
+Here we'll introduce the first environment which is of [`FULL_ACTION_SET`](@ref).
 """
 function MontyHallEnv(;rng=Random.GLOBAL_RNG)
     doors = fill(:goat, 3)
     doors[rand(rng, 1:3)] = :car
-    MontyHallEnv(doors, rng, nothing, nothing)
+    MontyHallEnv(doors, rng, nothing, nothing, nothing)
 end
 
-action_space(env::MontyHallEnv) = Base.OneTo(3)
+Random.seed!(env::MontyHallEnv, s) = Random.seed!(env.rng, s)
 
-ActionStyle(env::MontyHallEnv) = FULL_ACTION_SET
+action_space(::MontyHallEnv) = Base.OneTo(3)
 
 """
 In the first round, the guest has 3 options, in the second round only two
@@ -45,7 +47,7 @@ function legal_action_space(env::MontyHallEnv)
 end
 
 """
-This function should also be implemented in accompany to `legal_action_space`.
+For environments of [`FULL_ACTION_SET`], this function must be implemented.
 """
 function legal_action_space_mask(env::MontyHallEnv)
     mask = BitArray(undef, 3)
@@ -94,6 +96,8 @@ end
 
 reward(env::MontyHallEnv) = isnothing(env.reward) ? 0. : env.reward
 
+is_terminated(env::MontyHallEnv) = !isnothing(env.reward)
+
 function reset!(env::MontyHallEnv)
     env.doors .= :goat
     env.doors[rand(env.rng, 1:3)] = :car
@@ -106,7 +110,7 @@ NumAgentStyle(::MontyHallEnv) = SINGLE_AGENT
 DynamicStyle(::MontyHallEnv) = SEQUENTIAL
 ActionStyle(::MontyHallEnv) = FULL_ACTION_SET
 InformationStyle(::MontyHallEnv) = IMPERFECT_INFORMATION  # the distribution of noise and original reward is unknown to the agent
-StateStyle(::MontyHallEnv) = (Observation{Int}(),)
+StateStyle(::MontyHallEnv) = Observation{Int}()
 RewardStyle(::MontyHallEnv) = TERMINAL_REWARD
 UtilityStyle(::MontyHallEnv) = GENERAL_SUM
 ChanceStyle(::MontyHallEnv) = STOCHASTIC  # the same action lead to different reward each time.

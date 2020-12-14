@@ -1,12 +1,13 @@
-@testset "MultiArmBanditsEnv" begin
+@testset "RandomWalk1D" begin
 
-rng = StableRNG(123)
-env = MultiArmBanditsEnv(;rng=rng)
-rewards = []
+end_rewards = 3 => 5
+env = RandomWalk1D(;rewards=end_rewards)
 
 RLBase.test_interfaces(env)
 
+rng = StableRNG(123)
 N = 50_000
+rewards = []
 for _ in 1:N
     while !is_terminated(env)
         env(rand(rng, legal_action_space(env)))
@@ -15,6 +16,5 @@ for _ in 1:N
     reset!(env)
 end
 
-@test isapprox(mean(rewards), mean(env.true_values); atol=0.01)
-
+@test isapprox(mean(rewards), mean(end_rewards); atol=0.01)
 end

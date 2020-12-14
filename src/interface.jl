@@ -291,7 +291,7 @@ Specify the utility style in multi-agent environments. Possible values are:
 - [GENERAL_SUM](@ref). The default return.
 - [ZERO_SUM](@ref)
 - [CONSTANT_SUM](@ref)
-- [IDENTICAL_REWARD](@ref)
+- [IDENTICAL_UTILITY](@ref)
 """
 @env_api UtilityStyle(env::T) where {T<:AbstractEnv} = UtilityStyle(T)
 UtilityStyle(::Type{<:AbstractEnv}) = GENERAL_SUM
@@ -329,25 +329,49 @@ ActionStyle(::Type{<:AbstractEnv}) = MINIMAL_ACTION_SET
 abstract type AbstractStateStyle end
 
 "See the definition of [information set](https://en.wikipedia.org/wiki/Information_set_(game_theory))"
-@api struct Information{T} <: AbstractStateStyle end
+@api struct InformationSet{T} <: AbstractStateStyle end
+InformationSet() = InformationSet{Any}()
+
+"Use it to represent the internal state."
 @api struct InternalState{T} <: AbstractStateStyle end
+InternalState() = InternalState{Any}()
+
+"""
+Sometimes people from different field talk about the same thing with a different
+name. Here we set the `Observation{Any}()` as the default state style in this
+package.
+
+See discussions [here](https://ai.stackexchange.com/questions/5970/what-is-the-difference-between-an-observation-and-a-state-in-reinforcement-learn)
+"""
 @api struct Observation{T} <: AbstractStateStyle end
+Observation() = Observation{Any}()
 
 """
     StateStyle(env::AbstractEnv)
 
-Define the style of `state(env)`. Possible values are:
+Define the possible styles of `state(env)`. Possible values are:
 
-- [`Observation`](@ref). This is the default return.
-- [`InternalState`](@ref)
-- [`Information`](@ref)
+- [`Observation{T}`](@ref). This is the default return.
+- [`InternalState{T}`](@ref)
+- [`Information{T}`](@ref)
+- You can also define your customized state style when necessary.
 
-!!! warn
-    This is experimental.
+Or a tuple contains several of the above ones.
+
+This is useful for environments which provide more than one kind of state.
 """
-@env_api StateStyle(env::T) where {T<:AbstractEnv} = StateStyle(T)
-StateStyle(::Type{<:AbstractEnv}) = (Observation{Int}(),)
-@env_api DefaultStateStyle(env::AbstractEnv) = first(StateStyle(env))
+@env_api StateStyle(env::AbstractEnv) = Observation{Any}()
+
+"""
+Specify the defalt state style when calling `state(env)`.
+"""
+@env_api DefaultStateStyle(env::AbstractEnv) = DefaultStateStyle(StateStyle(env))
+DefaultStateStyle(ss::AbstractStateStyle) = ss
+DefaultStateStyle(ss::Tuple{Vararg{<:AbstractStateStyle}}) = first(ss)
+
+# EpisodeStyle
+# Episodic
+# NeverEnding
 
 #####
 # General
@@ -361,6 +385,9 @@ const CHANCE_PLAYER = ChancePlayer()
 
 struct SimultaneousPlayer end
 const SIMULTANEOUS_PLAYER = SimultaneousPlayer()
+
+struct Spector end
+const SPECTOR = Spector()
 
 @api (env::AbstractEnv)(action, player = current_player(env))
 
@@ -421,6 +448,15 @@ state(env::AbstractEnv, ss::AbstractStateStyle) = state(env, ss, current_player(
 state(env::AbstractEnv, player) = state(env, DefaultStateStyle(env), player)
 
 """
+    state_space(env, style=[DefaultStateStyle(env)], player=[current_player(env)])
+    
+Describe all possible states.
+"""
+@multi_agent_env_api state_space(env::AbstractEnv) = state_space(env, DefaultStateStyle(env))
+state_space(env::AbstractEnv, ss::AbstractStateStyle) = state_space(env, ss, current_player(env))
+state_space(env::AbstractEnv, player) = state_space(env, DefaultStateStyle(env), player)
+
+"""
     current_player(env)
 
 Return the next player to take action. For [Extensive Form
@@ -454,10 +490,6 @@ Used in imperfect multi-agent environments.
 
 @env_api players(env::AbstractEnv) = (DEFAULT_PLAYER,)
 
-@env_api num_players(env::AbstractEnv) = num_players(NumAgentStyle(env))
-num_players(::SingleAgent) = 1
-num_players(::MultiAgent{N}) where {N} = N
-
 "Reset the internal state of an environment"
 @env_api reset!(env::AbstractEnv)
 
@@ -467,7 +499,7 @@ num_players(::MultiAgent{N}) where {N} = N
 """
     is_terminated(env, player=current_player(env))
 """
-@multi_agent_env_api is_terminated(env::AbstractEnv, player = current_player(env))
+@env_api is_terminated(env::AbstractEnv)
 
 """
     reward(env, player=current_player(env))
@@ -486,7 +518,7 @@ Treat the `env` as a game tree. Create an independent child after applying
     new_env
 end
 
-@api has_children(env::AbstractEnv) = !terminal(env)
+@api has_children(env::AbstractEnv) = !is_terminated(env)
 
 @api children(env::AbstractEnv) = (child(env, action) for action in legal_action_space(env))
 
@@ -497,8 +529,10 @@ Call `f` with `env` and its descendants. Only use it with small games.
 """
 @api function walk(f, env::AbstractEnv)
     f(env)
-    for x in children(env)
-        walk(f, x)
+    if has_children(env)
+        for x in children(env)
+            walk(f, x)
+        end
     end
 end
 

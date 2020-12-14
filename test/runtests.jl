@@ -1,5 +1,8 @@
 using ReinforcementLearningBase
+using Random
+using StableRNGs
 using Test
+using Statistics
 import ReinforcementLearningBase: CRL
 import ReinforcementLearningBase.CRL
 

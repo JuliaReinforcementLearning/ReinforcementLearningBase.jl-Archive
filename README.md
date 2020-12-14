@@ -9,63 +9,36 @@ shared by other components in ReinforcementLearning ecosystem.
 ## Examples
 
 <table>
-  <tr align="center">
-    <th></th>
-    <th colspan="2">NumAgentStyle</th>
-    <th colspan="2">DynamicStyle</th>
-    <th colspan="2">ActionStyle</th>
-    <th colspan="2">RewardStyle</th>
-    <th colspan="2">InformationStyle</th>
-    <th colspan="3">StateStyle</th>
-    <th colspan="4">ChanceStyle</th>
-    <th colspan="4">UtilityStyle</th>
-  </tr>
-  <tr align="center">
-    <th></th>
-    <th>SINGLE_AGENT</th>
-    <th>MultiAgent</th>
-    <th>SEQUENTIAL </th>
-    <th>SIMULTANEOUS</th>
-    <th>MINIMAL_ACTION_SET </th>
-    <th>FULL_ACTION_SET </th>
-    <th>STEP_REWARD</th>
-    <th>TERMINAL_REWARD</th>
-    <th>PERFECT_INFORMATION</th>
-    <th>IMPERFECT_INFORMATION</th>
-    <th>Observation</th>
-    <th>InternalState</th>
-    <th>Information</th>
-    <th>STOCHASTIC</th>
-    <th>DETERMINISTIC</th>
-    <th>EXPLICIT_STOCHASTIC</th>
-    <th>SAMPLED_STOCHASTIC</th>
-    <th>ZERO_SUM</th>
-    <th>CONSTANT_SUM</th>
-    <th>GENERAL_SUM</th>
-    <th>IDENTICAL_REWARD</th>
-  </tr>
-  <tr align="center">
-    <td>MultiArmBanditsEnv</td>
-    <td>✔️<!-- SINGLE_AGENT --></td>
-    <td> <!-- MultiAgent --> </td>
-    <td>✔️<!-- SEQUENTIAL  --> </td>
-    <td> <!-- SIMULTANEOUS --> </td>
-    <td>✔️<!-- MINIMAL_ACTION_SET  --> </td>
-    <td> <!-- FULL_ACTION_SET  --> </td>
-    <td> <!-- STEP_REWARD --> </td>
-    <td>✔️<!-- TERMINAL_REWARD --> </td>
-    <td> <!-- PERFECT_INFORMATION --> </td>
-    <td>✔️<!-- IMPERFECT_INFORMATION --> </td>
-    <td>✔️<!-- Observation --> </td>
-    <td> <!-- InternalState --> </td>
-    <td> <!-- Information --> </td>
-    <td>✔️<!-- STOCHASTIC --> </td>
-    <td> <!-- DETERMINISTIC --> </td>
-    <td> <!-- EXPLICIT_STOCHASTIC --> </td>
-    <td> <!-- SAMPLED_STOCHASTIC --> </td>
-    <td> <!-- ZERO_SUM --> </td>
-    <td> <!-- CONSTANT_SUM --> </td>
-    <td>✔️<!-- GENERAL_SUM --> </td>
-    <td> <!-- IDENTICAL_REWARD --> </td>
-  </tr>
+<th colspan="2">Traits</th><th> 1 </th><th> 2 </th><th> 3 </th><th> 4 </th><th> 5 </th><th> 6 </th><th> 7 </th><th> 8 </th><th> 9 </th><tr> <th rowspan="2"> ActionStyle </th><th> MinimalActionSet </th><td> ✔ </td><td> ✔ </td><td> ✔ </td><td> </td> <td> ✔ </td><td> </td> <td> ✔ </td><td> ✔ </td><td> ✔ </td></tr>
+<tr> <th> FullActionSet </th><td> </td> <td> </td> <td> </td> <td> ✔ </td><td> </td> <td> ✔ </td><td> </td> <td> </td> <td> </td> </tr>
+<tr> <th rowspan="3"> ChanceStyle </th><th> Stochastic </th><td> ✔ </td><td> </td> <td> ✔ </td><td> ✔ </td><td> </td> <td> </td> <td> </td> <td> </td> <td> </td> </tr>
+<tr> <th> Deterministic </th><td> </td> <td> ✔ </td><td> </td> <td> </td> <td> ✔ </td><td> ✔ </td><td> </td> <td> </td> <td> </td> </tr>
+<tr> <th> ExplicitStochastic </th><td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> ✔ </td><td> ✔ </td><td> ✔ </td></tr>
+<tr> <th rowspan="2"> DefaultStateStyle </th><th> Observation </th><td> ✔ </td><td> ✔ </td><td> ✔ </td><td> ✔ </td><td> ✔ </td><td> ✔ </td><td> </td> <td> ✔ </td><td> </td> </tr>
+<tr> <th> InformationSet </th><td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> ✔ </td><td> </td> <td> ✔ </td></tr>
+<tr> <th rowspan="2"> DynamicStyle </th><th> Simultaneous </th><td> </td> <td> </td> <td> </td> <td> </td> <td> ✔ </td><td> </td> <td> </td> <td> </td> <td> </td> </tr>
+<tr> <th> Sequential </th><td> ✔ </td><td> ✔ </td><td> ✔ </td><td> ✔ </td><td> </td> <td> ✔ </td><td> ✔ </td><td> ✔ </td><td> ✔ </td></tr>
+<tr> <th rowspan="2"> InformationStyle </th><th> PerfectInformation </th><td> </td> <td> ✔ </td><td> </td> <td> </td> <td> </td> <td> ✔ </td><td> </td> <td> ✔ </td><td> </td> </tr>
+<tr> <th> ImperfectInformation </th><td> ✔ </td><td> </td> <td> ✔ </td><td> ✔ </td><td> ✔ </td><td> </td> <td> ✔ </td><td> </td> <td> ✔ </td></tr>
+<tr> <th rowspan="2"> NumAgentStyle </th><th> MultiAgent </th><td> </td> <td> </td> <td> </td> <td> </td> <td> ✔ </td><td> ✔ </td><td> ✔ </td><td> ✔ </td><td> ✔ </td></tr>
+<tr> <th> SingleAgent </th><td> ✔ </td><td> ✔ </td><td> ✔ </td><td> ✔ </td><td> </td> <td> </td> <td> </td> <td> </td> <td> </td> </tr>
+<tr> <th rowspan="2"> RewardStyle </th><th> TerminalReward </th><td> ✔ </td><td> ✔ </td><td> </td> <td> ✔ </td><td> ✔ </td><td> ✔ </td><td> ✔ </td><td> ✔ </td><td> ✔ </td></tr>
+<tr> <th> StepReward </th><td> </td> <td> </td> <td> ✔ </td><td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> </tr>
+<tr> <th rowspan="3"> StateStyle </th><th> Observation </th><td> ✔ </td><td> ✔ </td><td> ✔ </td><td> ✔ </td><td> ✔ </td><td> ✔ </td><td> </td> <td> ✔ </td><td> </td> </tr>
+<tr> <th> InformationSet </th><td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> ✔ </td><td> </td> <td> ✔ </td></tr>
+<tr> <th> InternalState </th><td> </td> <td> </td> <td> ✔ </td><td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> </tr>
+<tr> <th rowspan="4"> UtilityStyle </th><th> GeneralSum </th><td> ✔ </td><td> ✔ </td><td> ✔ </td><td> ✔ </td><td> </td> <td> </td> <td> </td> <td> </td> <td> </td> </tr>
+<tr> <th> ZeroSum </th><td> </td> <td> </td> <td> </td> <td> </td> <td> ✔ </td><td> ✔ </td><td> </td> <td> </td> <td> ✔ </td></tr>
+<tr> <th> ConstantSum </th><td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> ✔ </td><td> </td> </tr>
+<tr> <th> IdenticalUtility </th><td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> </td> <td> ✔ </td><td> </td> <td> </td> </tr>
 </table>
+<ol><li> <a href="https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/tree/master/src/examples/MultiArmBanditsEnv.jl"> MultiArmBanditsEnv </a></li>
+<li> <a href="https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/tree/master/src/examples/RandomWalk1D.jl"> RandomWalk1D </a></li>
+<li> <a href="https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/tree/master/src/examples/TigerProblemEnv.jl"> TigerProblemEnv </a></li>
+<li> <a href="https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/tree/master/src/examples/MontyHallEnv.jl"> MontyHallEnv </a></li>
+<li> <a href="https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/tree/master/src/examples/RockPaperScissorsEnv.jl"> RockPaperScissorsEnv </a></li>
+<li> <a href="https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/tree/master/src/examples/TicTacToeEnv.jl"> TicTacToeEnv </a></li>
+<li> <a href="https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/tree/master/src/examples/TinyHanabiEnv.jl"> TinyHanabiEnv </a></li>
+<li> <a href="https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/tree/master/src/examples/PigEnv.jl"> PigEnv </a></li>
+<li> <a href="https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/tree/master/src/examples/KuhnPokerEnv.jl"> KuhnPokerEnv </a></li>
+</ol>
