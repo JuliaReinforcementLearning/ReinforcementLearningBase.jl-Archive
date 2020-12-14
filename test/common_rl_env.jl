@@ -1,6 +1,6 @@
 @testset "Test convert between CommonRLEnv and RLBase" begin
 
-    x = MontyHallEnv()
+    x = MontyHallEnv(;rng=MersenneTwister(111))
     y = convert(CRL.AbstractEnv, x) |> CRL.clone
     z = convert(AbstractEnv, y) |> copy
 
