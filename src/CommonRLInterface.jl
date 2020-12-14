@@ -21,9 +21,9 @@ end
 const CommonRLEnvs = Union{CommonRLEnv,CommonRLMarkovEnv,CommonRLZeroSumEnv}
 
 function Base.convert(::Type{CRL.AbstractEnv}, env::AbstractEnv)
-    if num_players(env) == 1
+    if NumAgentStyle(env) === SINGLE_AGENT
         convert(CRL.AbstractMarkovEnv, env)
-    elseif num_players(env) == 2 && UtilityStyle(env) === ZERO_SUM
+    elseif NumAgentStyle(env) isa MultiAgent{2} && UtilityStyle(env) === ZERO_SUM
         convert(CRL.AbstractZeroSumEnv, env)
     else
         CommonRLEnv(env)
@@ -34,12 +34,12 @@ Base.convert(::Type{CRL.AbstractMarkovEnv}, env::AbstractEnv) = CommonRLMarkovEn
 Base.convert(::Type{CRL.AbstractZeroSumEnv}, env::AbstractEnv) = CommonRLZeroSumEnv(env)
 
 CRL.@provide CRL.reset!(env::CommonRLEnvs) = reset!(env.env)
-CRL.@provide CRL.actions(env::CommonRLEnvs) = actions(env.env)
+CRL.@provide CRL.actions(env::CommonRLEnvs) = action_space(env.env)
 CRL.@provide CRL.observe(env::CommonRLEnvs) = state(env.env)
 CRL.state(env::CommonRLEnvs) = state(env.env)
 CRL.provided(::typeof(CRL.state), env::CommonRLEnvs) =
     InformationStyle(env.env) === PERFECT_INFORMATION
-CRL.@provide CRL.terminated(env::CommonRLEnvs) = terminal(env.env)
+CRL.@provide CRL.terminated(env::CommonRLEnvs) = is_terminated(env.env)
 CRL.@provide CRL.player(env::CommonRLEnvs) = current_player(env.env)
 CRL.@provide CRL.clone(env::CommonRLEnvs) = CommonRLEnv(copy(env.env))
 
@@ -69,7 +69,7 @@ Base.convert(::Type{AbstractEnv}, env::CRL.AbstractEnv) = convert(RLBaseEnv, env
 Base.convert(::Type{RLBaseEnv}, env::CRL.AbstractEnv) = RLBaseEnv(env, 0.0f0)  # can not determine reward ahead. Assume `Float32`.
 
 state(env::RLBaseEnv) = CRL.observe(env.env)
-actions(env::RLBaseEnv) = CRL.actions(env.env)
+action_space(env::RLBaseEnv) = CRL.actions(env.env)
 reward(env::RLBaseEnv) = env.r
 is_terminated(env::RLBaseEnv) = CRL.terminated(env.env)
 legal_action_space(env::RLBaseEnv) = CRL.valid_actions(env.env)
