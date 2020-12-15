@@ -114,12 +114,8 @@ function test_interfaces!(env)
 
     @testset "SingleAgent" begin
         if NumAgentStyle(env) === SINGLE_AGENT
-<<<<<<< HEAD
             reset!(env)
             total_reward = 0.
-=======
-            total_reward = 0.0
->>>>>>> upstream/master
             while !is_terminated(env)
                 if StateStyle(env) isa Tuple
                     for ss in StateStyle(env)
