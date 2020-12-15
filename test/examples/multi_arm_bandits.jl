@@ -4,7 +4,7 @@ rng = StableRNG(123)
 env = MultiArmBanditsEnv(;rng=rng)
 rewards = []
 
-RLBase.test_interfaces(env)
+RLBase.test_interfaces!(env)
 
 N = 50_000
 for _ in 1:N
