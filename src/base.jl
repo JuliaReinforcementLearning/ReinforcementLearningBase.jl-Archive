@@ -272,25 +272,22 @@ end
 
 using IntervalSets
 
-"""
-watch https://github.com/JuliaMath/IntervalSets.jl/issues/66
-"""
-function Base.in(x::AbstractArray, s::Array{<:Interval})
-    size(x) == size(s) && all(x .∈ s)
-end
-
 Random.rand(s::Union{Interval, Array{<:Interval}}) = rand(Random.GLOBAL_RNG, s)
 
 function Random.rand(rng::AbstractRNG, s::Interval)
     rand(rng) * (s.right - s.left) + s.left
 end
 
-function Random.rand(rng::AbstractRNG, s::Array{<:Interval})
-    map(x -> rand(rng, x), s)
-end
+#####
+# WorldSpace
+#####
 
 export WorldSpace
 
+"""
+In some cases, we may not be interested in the action/state space.
+One can return `WorldSpace()` to keep the interface consistent.
+"""
 struct WorldSpace{T} end
 
 WorldSpace() = WorldSpace{Any}()
@@ -355,3 +352,50 @@ end
 Random.rand(rng::AbstractRNG, s::AbstractVector{<:ActionProbPair}) = s[weighted_sample(rng, (x.prob for x in s))]
 
 (env::AbstractEnv)(a::ActionProbPair) = env(a.action)
+
+#####
+# Space
+#####
+
+export Space
+
+"""
+A wrapper to treat each element as a sub-space which supports `Random.rand` and `Base.in`.
+"""
+struct Space{T}
+    s::T
+end
+
+Random.rand(s::Space) = rand(Random.GLOBAL_RNG, s)
+
+Random.rand(rng::AbstractRNG, s::Space) = map(s.s) do x
+    rand(rng, x)
+end
+
+Random.rand(rng::AbstractRNG, s::Space{<:Dict}) = Dict(k=>rand(rng,v) for (k,v) in s.s)
+
+function Base.in(X, S::Space)
+    if length(X) == length(S.s)
+        for (x,s) in zip(X, S.s)
+            if x ∉ s
+                return false
+            end
+        end
+        return true
+    else
+        return false
+    end
+end
+
+function Base.in(X::Dict, S::Space{<:Dict})
+    if keys(X) == keys(S.s)
+        for k in keys(X)
+            if X[k] ∉ S.s[k]
+                return false
+            end
+        end
+        return true
+    else
+        return false
+    end
+end
