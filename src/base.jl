@@ -190,3 +190,23 @@ function test_interfaces!(env)
 
     reset!(env)
 end
+
+function test_runnable!(env, n = 1000;rng=Random.GLOBAL_RNG)
+    @testset "random policy with $(nameof(env))" begin
+        reset!(env)
+        for _ in 1:n
+            A = legal_action_space(env)
+            a = rand(rng, A)
+            @test a in A
+
+            S = state_space(env)
+            s = state(env)
+            @test s in S
+            env(a)
+            if is_terminated(env)
+                reset!(env)
+            end
+        end
+        reset!(env)
+    end
+end
