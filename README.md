@@ -1,5 +1,8 @@
 # ReinforcementLearningBase.jl
 
+⚠️ This package is moved into [ReinforcementLearning.jl](https://github.com/JuliaReinforcementLearning/ReinforcementLearning.jl) (2021-05-06)
+
+
 ![CI](https://github.com/JuliaReinforcementLearning/ReinforcementLearningBase.jl/workflows/CI/badge.svg)
 
 This package defines two core concepts in reinforcement learning:
